@@ -93,7 +93,7 @@ class Sm2CalculatorTest {
         for (int i = 0; i < 3; i++) {
             s = sm2.next(s, false).state();
         }
-        // 2.5 - 0.2 * 3 = 1.9 (không phải 1.9000000000000001)
+        // 2.5 - 0.2 * 3 = 1.9 (not 1.9000000000000001)
         assertThat(s.easeFactor()).isEqualTo(1.9);
     }
 
@@ -113,7 +113,7 @@ class Sm2CalculatorTest {
 
     @Test
     void interval_isCappedAtMaxInterval() {
-        // 76488 * 2.5 = 191220 vượt NUMBER(5) của INTERVAL_DAYS: phải dừng ở MAX_INTERVAL
+        // 76488 * 2.5 = 191220 exceeds INTERVAL_DAYS NUMBER(5): must stop at MAX_INTERVAL
         Result r = sm2.next(new State(2.5, 76488, 13), true);
 
         assertThat(r.state().intervalDays()).isEqualTo(Sm2Calculator.MAX_INTERVAL);

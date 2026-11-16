@@ -11,7 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/** Lịch sử học / ôn, dùng cho thống kê và streak. */
+/** Learn / review history, used for statistics and streaks. */
 @Entity
 @Table(name = "STUDY_LOG")
 public class StudyLog {
@@ -31,7 +31,7 @@ public class StudyLog {
     @Column(name = "ACTIVITY_TYPE", nullable = false, length = 10)
     private ActivityType activityType;
 
-    /** null với LEARN, true/false với QUIZ và LISTEN. */
+    /** null for LEARN, true/false for QUIZ and LISTEN. */
     @Column(name = "IS_CORRECT")
     private Boolean correct;
 

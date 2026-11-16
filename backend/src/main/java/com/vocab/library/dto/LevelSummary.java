@@ -1,10 +1,10 @@
 package com.vocab.library.dto;
 
 /**
- * Tiến độ của user ở một cấp độ (hoặc kho tự thêm khi {@code level} null).
+ * User progress in one level (or in the self-added bank when {@code level} is null).
  *
- * @param total   tổng số từ
- * @param learned số từ user đã học (đã vào lịch ôn)
+ * @param total   total number of words
+ * @param learned number of words the user has learned (already scheduled for review)
  */
 public record LevelSummary(String level, long total, long learned) {
 }

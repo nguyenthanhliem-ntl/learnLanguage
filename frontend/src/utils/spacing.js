@@ -1,9 +1,9 @@
-/** Một từ không được xuất hiện lại trong vòng chừng này câu. */
+/** A word must not appear again within this many questions. */
 export const REPEAT_GAP = 5
 
 /**
- * Sắp xếp lại danh sách câu hỏi sao cho mỗi từ cách lần xuất hiện trước ít nhất {@code gap} câu,
- * tính cả các câu vừa hỏi ở lượt trước ({@code recentIds}). Kho quá ít từ thì làm tốt nhất có thể.
+ * Reorders questions so each word is at least {@code gap} questions away from its previous appearance,
+ * including the questions just asked in the previous round ({@code recentIds}). Does its best when the bank is very small.
  */
 export function arrangeWithGap(questions, recentIds = [], gap = REPEAT_GAP) {
   const pending = [...questions]
@@ -17,18 +17,18 @@ export function arrangeWithGap(questions, recentIds = [], gap = REPEAT_GAP) {
   return out
 }
 
-/** Từ vừa học (từ thưởng) phải được ôn trong chừng này câu đầu của lượt ôn kế tiếp. */
+/** A word just learned (bonus word) must be reviewed within this many questions at the start of the next round. */
 export const NEW_WORD_WITHIN = 10
 
 /**
- * Đặt câu hỏi của các từ trong {@code ids} vào một vị trí ngẫu nhiên trong {@code limit} câu đầu.
- * Các câu khác giữ nguyên thứ tự.
+ * Places the questions of the words in {@code ids} at a random position within the first {@code limit} questions.
+ * The other questions keep their order.
  */
 export function placeWithin(questions, ids = [], limit = NEW_WORD_WITHIN) {
   const out = [...questions]
   for (const id of ids) {
     const from = out.findIndex((q) => q.word.id === id)
-    if (from < 0) continue // từ không có trong lượt
+    if (from < 0) continue // word not in this round
     const [q] = out.splice(from, 1)
     const to = Math.floor(Math.random() * Math.min(limit, out.length + 1))
     out.splice(to, 0, q)

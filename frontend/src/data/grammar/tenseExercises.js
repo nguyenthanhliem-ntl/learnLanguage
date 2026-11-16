@@ -1,6 +1,6 @@
-// Bài tập 12 thì, chia 3 cấp: easy (dễ) · medium (trung bình) · hard (khó).
-// f(): điền vào chỗ trống "___" (gợi ý động từ trong ngoặc), answers là các đáp án chấp nhận.
-// c(): chọn 1 trong các phương án.
+// Exercises for the 12 tenses in 3 levels: easy · medium · hard.
+// f(): fill in the "___" blank (verb hint in brackets), answers are the accepted answers.
+// c(): pick one of the options.
 const f = (q, answers, explain) => ({ type: 'fill', q, answers: [].concat(answers), explain })
 const c = (q, options, answer, explain) => ({ type: 'choice', q, options, answer, explain })
 

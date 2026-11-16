@@ -6,10 +6,10 @@ import t from '@/locales/vi'
 const props = defineProps({
   text: { type: String, default: '' },
   size: { type: String, default: 'md' }, // sm | md | lg
-  variant: { type: String, default: 'default' }, // default | hero (trên nền gradient)
+  variant: { type: String, default: 'default' }, // default | hero (on a gradient background)
 })
 
-// Bấm lần chẵn (2, 4...) với cùng một từ thì đọc chậm lại
+// Pressing the same word an even number of times (2, 4...) reads it slower
 const { supported, speaking, speakTap } = useSpeech()
 
 const sizes = {

@@ -2,7 +2,7 @@
 import AppIcon from './AppIcon.vue'
 import t from '@/locales/vi'
 
-// page bắt đầu từ 0 (giống backend), hiển thị cho người dùng từ 1
+// page starts at 0 (like the backend), shown to the user starting at 1
 const props = defineProps({
   page: { type: Number, required: true },
   totalPages: { type: Number, required: true },

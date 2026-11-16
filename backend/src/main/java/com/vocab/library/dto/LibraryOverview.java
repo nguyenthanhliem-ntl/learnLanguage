@@ -3,11 +3,11 @@ package com.vocab.library.dto;
 import java.util.List;
 
 /**
- * Kho từ vựng trên trang Tổng quan.
+ * Vocabulary bank shown on the Dashboard.
  *
- * @param currentLevel cấp độ đang học, null = kho tự thêm
- * @param myBank       toàn bộ kho của user (từ tự thêm + từ đã chép từ các cấp độ)
- * @param levels       các cấp độ A1–C2 theo thứ tự
+ * @param currentLevel level being studied, null = self-added bank
+ * @param myBank       the user's whole bank (self-added words + words copied from levels)
+ * @param levels       levels A1–C2 in order
  */
 public record LibraryOverview(String currentLevel, LevelSummary myBank, List<LevelSummary> levels) {
 }

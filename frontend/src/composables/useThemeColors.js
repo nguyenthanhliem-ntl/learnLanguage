@@ -2,14 +2,14 @@ import { computed } from 'vue'
 import { useThemeStore } from '@/stores/theme'
 
 /**
- * Đọc màu design token từ biến CSS (--c-<token>) cho những chỗ không dùng được class Tailwind,
- * vd canvas của Chart.js. Tự tính lại khi đổi giao diện Sáng/Tối.
+ * Reads design-token colours from CSS variables (--c-<token>) where Tailwind classes cannot be used,
+ * e.g. the Chart.js canvas. Recomputed when switching between Light and Dark.
  */
 export function useThemeColors(names) {
   const themeStore = useThemeStore()
 
   return computed(() => {
-    // Phụ thuộc vào theme để tính lại sau khi class .dark đổi
+    // Depends on the theme so it is recomputed after the .dark class changes
     void themeStore.theme
     const style = getComputedStyle(document.documentElement)
     return Object.fromEntries(names.map((name) => {

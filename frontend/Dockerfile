@@ -1,4 +1,4 @@
-# Frontend VocabMaster: build Vite, phục vụ bằng Nginx (Nginx cũng chuyển /api sang backend)
+# VocabMaster frontend: Vite build served by Nginx (Nginx also proxies /api to the backend)
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./

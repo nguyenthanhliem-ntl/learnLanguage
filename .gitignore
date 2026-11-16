@@ -21,5 +21,5 @@ Thumbs.db
 # Deploy
 deploy/backups/
 
-# Ảnh tham khảo thiết kế (9,6 MB), không dùng trong app
+# Design reference image (9.6 MB), not used by the app
 godly.design_templates_agentlyy_.png

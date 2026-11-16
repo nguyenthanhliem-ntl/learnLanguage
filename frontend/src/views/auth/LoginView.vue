@@ -26,7 +26,7 @@ async function submit() {
     await auth.login({ username: form.username, password: form.password })
     success.value = true
     await delay(SUCCESS_REDIRECT_DELAY)
-    // Chỉ cho redirect về đường dẫn nội bộ ("/..." nhưng không phải "//domain-khac")
+    // Only allow redirects to internal paths ("/..." but not "//other-domain")
     const target = route.query.redirect
     const redirect = typeof target === 'string' && target.startsWith('/') && !target.startsWith('//')
       ? target

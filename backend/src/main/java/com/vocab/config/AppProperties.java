@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-/** Cấu hình riêng của app, đọc từ khóa {@code app.*} trong application.yml. */
+/** App-specific settings, read from the {@code app.*} keys in application.yml. */
 @ConfigurationProperties(prefix = "app")
 public record AppProperties(Jwt jwt, Cors cors, ZoneId zone) {
 

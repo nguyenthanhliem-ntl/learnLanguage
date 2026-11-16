@@ -10,7 +10,7 @@ import ExampleSentence from '@/components/grammar/ExampleSentence.vue'
 import GrammarExercises from '@/components/grammar/GrammarExercises.vue'
 import t from '@/locales/vi'
 
-// Chi tiết một thì: công thức · cách dùng · dấu hiệu nhận biết · lưu ý · so sánh · bài tập
+// Tense details: formulas · uses · signal words · notes · comparisons · exercises
 const route = useRoute()
 const tense = computed(() => findTense(route.params.slug))
 const index = computed(() => tenses.findIndex((x) => x.slug === route.params.slug))
@@ -57,7 +57,7 @@ const formulaStyles = {
       {{ t.grammar.back }}
     </RouterLink>
 
-    <!-- Tiêu đề -->
+    <!-- Title -->
     <header class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-hero-start to-hero-end p-6 text-white shadow-xl shadow-primary-600/10 sm:p-8">
       <div class="flex flex-wrap items-center gap-2">
         <span class="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{{ tense.level }}</span>
@@ -71,7 +71,7 @@ const formulaStyles = {
       </p>
     </header>
 
-    <!-- Công thức -->
+    <!-- Formulas -->
     <section class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
       <h2 class="text-lg font-semibold">
         {{ t.grammar.formula }}
@@ -103,7 +103,7 @@ const formulaStyles = {
       </div>
     </section>
 
-    <!-- Cách dùng -->
+    <!-- Uses -->
     <section class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
       <h2 class="text-lg font-semibold">
         {{ t.grammar.uses }}
@@ -131,7 +131,7 @@ const formulaStyles = {
       </ol>
     </section>
 
-    <!-- Dấu hiệu nhận biết -->
+    <!-- Signal words -->
     <section class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
       <h2 class="text-lg font-semibold">
         {{ t.grammar.signals }}
@@ -147,7 +147,7 @@ const formulaStyles = {
       </ul>
     </section>
 
-    <!-- Trường hợp đặc biệt & lưu ý -->
+    <!-- Special cases & notes -->
     <section class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
       <h2 class="text-lg font-semibold">
         {{ t.grammar.notes }}
@@ -167,7 +167,7 @@ const formulaStyles = {
       </ul>
     </section>
 
-    <!-- So sánh với thì dễ nhầm -->
+    <!-- Comparison with easily confused tenses -->
     <section
       v-if="related.length"
       class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6"
@@ -208,7 +208,7 @@ const formulaStyles = {
       </div>
     </section>
 
-    <!-- Bài tập -->
+    <!-- Exercises -->
     <section
       v-if="exerciseSets"
       class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6"
@@ -226,7 +226,7 @@ const formulaStyles = {
       />
     </section>
 
-    <!-- Thì trước / tiếp theo -->
+    <!-- Previous / next tense -->
     <nav class="flex flex-wrap items-center justify-between gap-3">
       <RouterLink
         v-if="prev"

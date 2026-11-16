@@ -15,7 +15,7 @@ function apply(theme) {
   document.documentElement.classList.toggle('dark', theme === 'dark')
 }
 
-/** Giao diện Sáng / Tối, lưu trong trình duyệt. index.html áp dụng sớm để không bị nháy màu khi tải trang. */
+/** Light / Dark theme, saved in the browser. index.html applies it early to avoid a colour flash on load. */
 export const useThemeStore = defineStore('theme', () => {
   const theme = ref(readSaved())
   apply(theme.value)
@@ -25,7 +25,7 @@ export const useThemeStore = defineStore('theme', () => {
     try {
       localStorage.setItem(KEY, value)
     } catch {
-      // không lưu được thì chỉ áp dụng cho lần mở này
+      // if it cannot be saved, it only applies to this visit
     }
   })
 

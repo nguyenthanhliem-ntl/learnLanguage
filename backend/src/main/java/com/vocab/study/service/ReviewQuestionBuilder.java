@@ -17,13 +17,13 @@ import com.vocab.word.dto.WordResponse;
 import com.vocab.word.service.WordService;
 
 /**
- * Tạo câu hỏi ôn tập, chọn ngẫu nhiên 1 trong 5 dạng:
+ * Builds review questions, picking 1 of 5 types at random:
  * <ul>
- *   <li>Nghe phát âm → gõ từ</li>
- *   <li>Nghĩa + loại từ → chọn từ / gõ từ</li>
- *   <li>Phiên âm + loại từ → chọn từ / gõ từ (chỉ khi từ có phiên âm)</li>
+ *   <li>Listen to the pronunciation → type the word</li>
+ *   <li>Meaning + part of speech → pick the word / type the word</li>
+ *   <li>Phonetic + part of speech → pick the word / type the word (only when the word has a phonetic)</li>
  * </ul>
- * Dạng chọn cần ít nhất 3 từ khác (khác mặt chữ) làm đáp án nhiễu; không đủ thì chỉ dùng dạng gõ.
+ * The choice type needs at least 3 other words (different spellings) as distractors; otherwise only the typing type is used.
  */
 @Component
 public class ReviewQuestionBuilder {
@@ -44,11 +44,11 @@ public class ReviewQuestionBuilder {
     }
 
     /**
-     * @param words cần ôn (sẽ được xáo trộn)
-     * @param pool  toàn bộ (id, từ) trong kho để lấy đáp án nhiễu
+     * @param words words to review (will be shuffled)
+     * @param pool  every (id, word) in the bank, used for distractors
      */
     public List<ReviewQuestion> build(List<WordResponse> words, List<QuizOption> pool) {
-        // Gom theo mặt chữ: "book (noun)" và "book (verb)" chỉ tính là một lựa chọn
+        // Group by spelling: "book (noun)" and "book (verb)" count as a single option
         Map<String, QuizOption> distinct = new LinkedHashMap<>();
         for (QuizOption o : pool) {
             distinct.putIfAbsent(WordService.normalize(o.word()), o);

@@ -10,7 +10,7 @@ import FaqSection from '@/components/landing/FaqSection.vue'
 import CtaSection from '@/components/landing/CtaSection.vue'
 import LandingFooter from '@/components/landing/LandingFooter.vue'
 
-// Landing page cho khách (CLAUDE.md §8.3). Đã đăng nhập thì router chuyển thẳng vào Tổng quan.
+// Landing page for visitors (CLAUDE.md §8.3). Signed-in users are redirected straight to the Dashboard.
 </script>
 
 <template>
@@ -23,7 +23,7 @@ import LandingFooter from '@/components/landing/LandingFooter.vue'
       <HowItWorksSection />
       <DemoSection />
       <StatsSection />
-      <!-- TODO: Section nhận xét người dùng – chỉ thêm khi có nhận xét thật (CLAUDE.md §8.3) -->
+      <!-- TODO: User testimonials section – only add it with real testimonials (CLAUDE.md §8.3) -->
       <FaqSection />
       <CtaSection />
     </main>

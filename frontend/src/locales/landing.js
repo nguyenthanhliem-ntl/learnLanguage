@@ -1,4 +1,4 @@
-// Text của landing page (trang "/" cho khách). Được gộp vào locales/vi.js dưới khóa "landing".
+// Landing page text (the "/" page for visitors). Merged into locales/vi.js under the "landing" key.
 export default {
   nav: {
     features: 'Tính năng',

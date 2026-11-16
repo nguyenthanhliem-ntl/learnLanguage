@@ -1,5 +1,5 @@
-// So sánh câu trả lời gõ tay: bỏ ký tự ẩn (zero-width, BOM do dán / bộ gõ chèn vào), chuẩn hóa Unicode,
-// đổi nháy cong thành nháy thẳng (doesn’t = doesn't), gộp khoảng trắng, không phân biệt hoa/thường
+// Compares typed answers: removes hidden characters (zero-width, BOM from pasting / input methods), normalizes Unicode,
+// turns curly apostrophes into straight ones (doesn’t = doesn't), collapses spaces, case-insensitive
 export function normalizeAnswer(s) {
   return (s ?? '')
     .normalize('NFC')
@@ -10,7 +10,7 @@ export function normalizeAnswer(s) {
     .toLowerCase()
 }
 
-/** Câu trả lời khớp một trong các đáp án chấp nhận (để trống là sai). */
+/** The answer matches one of the accepted answers (empty is wrong). */
 export function matchesAnswer(typed, answers) {
   const t = normalizeAnswer(typed)
   return t !== '' && answers.some((a) => normalizeAnswer(a) === t)

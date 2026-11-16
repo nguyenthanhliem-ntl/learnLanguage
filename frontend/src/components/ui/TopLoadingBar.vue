@@ -2,7 +2,7 @@
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { useLoadingStore } from '@/stores/loading'
 
-// Thanh tiến độ mỏng trên đầu trang: chạy dần tới ~90% khi đang tải, xong thì lên 100% rồi ẩn
+// Thin progress bar at the top: creeps towards ~90% while loading, jumps to 100% when done, then hides
 const loading = useLoadingStore()
 const progress = ref(0)
 const visible = ref(false)
@@ -14,12 +14,12 @@ let showDelayTimer = null
 function begin() {
   clearTimeout(hideTimer)
   if (visible.value) return
-  // Đợi 100ms mới hiện để request rất nhanh không làm thanh nhấp nháy
+  // Wait 100ms before showing so very fast requests do not make the bar flicker
   showDelayTimer = setTimeout(() => {
     visible.value = true
     progress.value = 8
     trickleTimer = setInterval(() => {
-      // Càng gần 90% càng chậm lại
+      // Slows down as it gets closer to 90%
       progress.value += (90 - progress.value) * 0.08
     }, 200)
   }, 100)

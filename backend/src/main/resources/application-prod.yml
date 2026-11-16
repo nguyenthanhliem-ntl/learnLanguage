@@ -1,18 +1,18 @@
-# Cấu hình môi trường thật (bật bằng SPRING_PROFILES_ACTIVE=prod, Dockerfile đã đặt sẵn).
-# Mọi thông tin bí mật lấy từ biến môi trường: DB_URL, DB_USERNAME, DB_PASSWORD, JWT_SECRET.
+# Production settings (enabled with SPRING_PROFILES_ACTIVE=prod, already set in the Dockerfile).
+# All secrets come from environment variables: DB_URL, DB_USERNAME, DB_PASSWORD, JWT_SECRET.
 
 server:
-  # Chạy sau Nginx: đọc X-Forwarded-* để biết đúng địa chỉ/scheme người dùng truy cập
+  # Behind Nginx: read X-Forwarded-* to know the real address/scheme the user used
   forward-headers-strategy: framework
   error:
     include-stacktrace: never
 
 app:
   cors:
-    # Địa chỉ người dùng mở web, vd http://1.2.3.4 (đặt bằng APP_CORS_ALLOWED_ORIGINS, nhiều địa chỉ cách nhau dấu phẩy)
+    # Address users open the site at, e.g. http://1.2.3.4 (set via APP_CORS_ALLOWED_ORIGINS, comma-separated for several)
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost}
 
-# Tắt Swagger UI và API docs trên môi trường thật
+# Disable Swagger UI and API docs in production
 springdoc:
   api-docs:
     enabled: false

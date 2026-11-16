@@ -1,4 +1,4 @@
-// Toàn bộ text giao diện gom về đây để dễ sửa (CLAUDE.md §8.5)
+// All UI text lives here so it is easy to edit (CLAUDE.md §8.5)
 import landing from './landing'
 
 export default {
@@ -238,7 +238,7 @@ export default {
       cellLabel: (date, learned, reviewed) => learned + reviewed
         ? `${date}: ${learned} từ mới, ${reviewed} câu ôn`
         : `${date}: không học`,
-      // Chú thích mức màu thứ i (0 = không ôn) theo ngưỡng số câu ôn
+      // Legend for colour level i (0 = no review) based on the review-count thresholds
       levelRange: (i, levels) => i === 0
         ? 'Không ôn câu nào'
         : i === levels.length ? `Từ ${levels[i - 1]} câu ôn trở lên` : `${levels[i - 1]}–${levels[i] - 1} câu ôn`,
@@ -298,7 +298,7 @@ export default {
     stop: 'Kết thúc',
   },
   review: {
-    // Lời dẫn theo [gợi ý][cách trả lời]
+    // Instructions by [hint][answer mode]
     instructions: {
       LISTEN: { TYPE: 'Nghe và gõ lại từ tiếng Anh' },
       MEANING: { CHOICE: 'Chọn từ tiếng Anh có nghĩa sau', TYPE: 'Gõ từ tiếng Anh có nghĩa sau' },

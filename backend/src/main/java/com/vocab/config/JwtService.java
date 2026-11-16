@@ -15,7 +15,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
-/** Tạo và kiểm tra JWT (HS256). Subject là userId, kèm claim username. */
+/** Creates and verifies JWTs (HS256). The subject is the userId, plus a username claim. */
 @Component
 public class JwtService {
 
@@ -45,7 +45,7 @@ public class JwtService {
                 .compact();
     }
 
-    /** Trả về user nếu token hợp lệ và chưa hết hạn, ngược lại trả về rỗng. */
+    /** Returns the user if the token is valid and not expired, otherwise empty. */
     public Optional<AuthUser> parse(String token) {
         try {
             Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();

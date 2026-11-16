@@ -37,7 +37,7 @@ const c = t.landing.cta
           </div>
         </div>
 
-        <!-- Ảnh mô phỏng màn Học từ mới -->
+        <!-- Mock-up of the New words screen -->
         <div
           class="mx-auto w-full max-w-sm rounded-3xl border border-border bg-surface p-5 shadow-xl shadow-primary-600/10"
           aria-hidden="true"

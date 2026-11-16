@@ -13,7 +13,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => Boolean(token.value))
 
   function applyAuth(response) {
-    usePracticeStore().reset() // mỗi lần đăng nhập đều phải ôn trước khi học từ mới
+    usePracticeStore().reset() // every login must pass the review before learning new words
     setToken(response.token)
     token.value = response.token
     user.value = response.user

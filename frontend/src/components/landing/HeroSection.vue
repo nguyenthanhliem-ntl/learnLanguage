@@ -58,7 +58,7 @@ const h = t.landing.hero
       </div>
     </div>
 
-    <!-- Mockup dashboard trên nền gradient xanh -->
+    <!-- Dashboard mock-up on a blue gradient -->
     <div
       v-reveal
       class="relative mx-auto mt-14 max-w-6xl px-4 pb-20 md:mt-16 md:pb-28"
@@ -72,7 +72,7 @@ const h = t.landing.hero
           <DashboardMockup class="shadow-xl" />
         </div>
 
-        <!-- Thẻ nổi (chỉ ở màn lớn để không gây cuộn ngang) -->
+        <!-- Floating cards (large screens only, to avoid horizontal scrolling) -->
         <div
           class="animate-float absolute -left-8 top-1/3 hidden items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-left shadow-xl shadow-primary-600/10 lg:flex"
           aria-hidden="true"

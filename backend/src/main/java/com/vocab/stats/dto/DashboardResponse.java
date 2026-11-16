@@ -1,17 +1,17 @@
 package com.vocab.stats.dto;
 
 /**
- * Số liệu trang Tổng quan.
+ * Dashboard figures.
  *
- * @param learnedToday   số từ mới đã học hôm nay
- * @param dailyGoal      mục tiêu từ mới mỗi ngày
- * @param reviewedToday  số câu ôn đã làm hôm nay
- * @param dueToday       số từ đến hạn ôn (next_review_date <= hôm nay)
- * @param streak         số ngày học liên tiếp
- * @param totalWords     tổng số từ trong kho
- * @param masteredCount  số từ Đã thuộc
- * @param learningCount  số từ Đang học
- * @param notStartedCount số từ Chưa học
+ * @param learnedToday   new words learned today
+ * @param dailyGoal      daily new-word goal
+ * @param reviewedToday  review questions answered today
+ * @param dueToday       words due for review (next_review_date <= today)
+ * @param streak         consecutive study days
+ * @param totalWords     total words in the bank
+ * @param masteredCount  words marked Mastered
+ * @param learningCount  words marked Learning
+ * @param notStartedCount words not started yet
  */
 public record DashboardResponse(
         long learnedToday,

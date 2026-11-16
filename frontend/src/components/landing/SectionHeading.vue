@@ -1,5 +1,5 @@
 <script setup>
-// Tiêu đề section chuẩn của landing: pill nhỏ + tiêu đề có từ khóa tô màu + mô tả (CLAUDE.md §8.2)
+// Standard landing section heading: small pill + title with highlighted keywords + description (CLAUDE.md §8.2)
 defineProps({
   badge: { type: String, required: true },
   before: { type: String, default: '' },

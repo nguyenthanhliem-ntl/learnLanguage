@@ -17,12 +17,12 @@ const memberSince = computed(() => {
   return new Date(auth.user.createdAt).toLocaleDateString('vi-VN')
 })
 
-// ---- Số từ mới mỗi ngày ----
+// ---- New words per day ----
 const selected = ref(auth.user?.dailyGoal ?? null)
 const savingGoal = ref(false)
 const goalStatus = ref(null) // { variant, message }
 
-// User có thể được tải sau khi vào trang (tải lại trang)
+// The user may be loaded after entering the page (page reload)
 watch(() => auth.user?.dailyGoal, (goal) => {
   if (selected.value === null && goal) selected.value = goal
 })
@@ -42,7 +42,7 @@ async function saveGoal() {
   }
 }
 
-// ---- Đổi mật khẩu ----
+// ---- Change password ----
 const pw = reactive({ current: '', next: '', confirm: '' })
 const savingPw = ref(false)
 const pwStatus = ref(null) // { variant, message, details }
@@ -82,7 +82,7 @@ async function changePassword() {
       </p>
     </div>
 
-    <!-- Thông tin tài khoản -->
+    <!-- Account information -->
     <section class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
       <h2 class="font-semibold">
         {{ t.account.infoTitle }}
@@ -112,7 +112,7 @@ async function changePassword() {
       </div>
     </section>
 
-    <!-- Đổi mật khẩu -->
+    <!-- Change password -->
     <section class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
       <h2 class="font-semibold">
         {{ t.account.passwordTitle }}
@@ -167,7 +167,7 @@ async function changePassword() {
       </form>
     </section>
 
-    <!-- Số từ mới mỗi ngày -->
+    <!-- New words per day -->
     <section class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
       <h2 class="font-semibold">
         {{ t.account.dailyGoalTitle }}

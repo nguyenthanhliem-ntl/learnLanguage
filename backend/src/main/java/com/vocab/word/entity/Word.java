@@ -24,7 +24,7 @@ public class Word {
     @Column(name = "WORD", nullable = false, length = 100)
     private String word;
 
-    /** Loại từ, gõ tự do (vd noun, verb, adj...). Từ thêm trước V2 có thể null. */
+    /** Part of speech, free text (e.g. noun, verb, adj...). Words added before V2 may be null. */
     @Column(name = "PART_OF_SPEECH", length = 50)
     private String partOfSpeech;
 
@@ -34,7 +34,7 @@ public class Word {
     @Column(name = "MEANING", nullable = false, length = 1000)
     private String meaning;
 
-    /** Từ chép từ kho cấp độ (VOCAB_LIBRARY); null = user tự thêm. Chỉ ghi khi chép, xem LibraryRepository. */
+    /** Word copied from the level bank (VOCAB_LIBRARY); null = added by the user. Only written when copying, see LibraryRepository. */
     @Column(name = "LIBRARY_ID", insertable = false, updatable = false)
     private Long libraryId;
 

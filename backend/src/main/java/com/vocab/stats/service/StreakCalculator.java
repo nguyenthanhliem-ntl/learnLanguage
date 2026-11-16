@@ -4,15 +4,15 @@ import java.time.LocalDate;
 import java.util.Set;
 
 /**
- * Streak = số ngày học liên tiếp tính tới hôm nay.
- * Hôm nay chưa học thì vẫn giữ streak tính tới hôm qua (người dùng còn cả ngày để học tiếp).
+ * Streak = number of consecutive study days up to today.
+ * If the user has not studied yet today, the streak up to yesterday is kept (they still have the whole day).
  */
 public final class StreakCalculator {
 
     private StreakCalculator() {
     }
 
-    /** @param studyDays các ngày có ít nhất một hoạt động học / ôn */
+    /** @param studyDays days with at least one learn / review activity */
     public static int streak(Set<LocalDate> studyDays, LocalDate today) {
         LocalDate day = studyDays.contains(today) ? today : today.minusDays(1);
         int count = 0;

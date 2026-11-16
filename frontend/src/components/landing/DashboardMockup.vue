@@ -3,7 +3,7 @@ import AppIcon from '@/components/ui/AppIcon.vue'
 import AppLogo from '@/components/ui/AppLogo.vue'
 import t from '@/locales/vi'
 
-// Ảnh mô phỏng trang Tổng quan của app (dữ liệu minh họa), dùng ở Hero và Demo
+// Mock-up of the app's Dashboard (sample data), used in Hero and Demo
 const m = t.landing.mockup
 const navIcons = ['home', 'book', 'stack', 'plus']
 const statStyles = [
@@ -24,7 +24,7 @@ const bankTotal = m.bankItems.reduce((s, b) => s + b.value, 0)
     class="overflow-hidden rounded-2xl bg-canvas text-left"
     aria-hidden="true"
   >
-    <!-- Header của app -->
+    <!-- App header -->
     <div class="flex items-center justify-between gap-3 border-b border-border bg-surface px-4 py-3">
       <AppLogo class="text-sm" />
       <div class="hidden items-center gap-1 text-xs font-medium text-ink-500 md:flex">
@@ -44,7 +44,7 @@ const bankTotal = m.bankItems.reduce((s, b) => s + b.value, 0)
     </div>
 
     <div class="space-y-3 p-3 sm:space-y-4 sm:p-5">
-      <!-- Card Hôm nay -->
+      <!-- Today card -->
       <div class="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-hero-start to-hero-end p-4 text-white">
         <div class="min-w-0">
           <p class="truncate font-bold sm:text-lg">
@@ -62,7 +62,7 @@ const bankTotal = m.bankItems.reduce((s, b) => s + b.value, 0)
         </span>
       </div>
 
-      <!-- 4 thẻ số liệu -->
+      <!-- 4 stat cards -->
       <div class="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         <div
           v-for="(s, i) in m.stats"
@@ -90,7 +90,7 @@ const bankTotal = m.bankItems.reduce((s, b) => s + b.value, 0)
       </div>
 
       <div class="grid gap-3 sm:gap-4 lg:grid-cols-3">
-        <!-- Biểu đồ -->
+        <!-- Chart -->
         <div class="rounded-xl border border-border bg-surface p-3 sm:p-4 lg:col-span-2">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <p class="text-sm font-semibold">
@@ -126,7 +126,7 @@ const bankTotal = m.bankItems.reduce((s, b) => s + b.value, 0)
           </div>
         </div>
 
-        <!-- Tổng kho -->
+        <!-- Word bank total -->
         <div class="rounded-xl border border-border bg-surface p-3 sm:p-4">
           <p class="text-sm font-semibold">
             {{ m.bank }}

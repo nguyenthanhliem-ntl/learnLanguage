@@ -20,14 +20,14 @@ import com.vocab.stats.repository.StatsRepository.StatusCount;
 import com.vocab.study.entity.ActivityType;
 import com.vocab.user.service.UserService;
 
-/** Thống kê cho Dashboard (CLAUDE.md §5.5). */
+/** Dashboard statistics (CLAUDE.md §5.5). */
 @Service
 public class StatsService {
 
     public static final List<Integer> ALLOWED_DAYS = List.of(7, 30);
-    /** Số tháng xem được ở biểu đồ theo tháng (gồm tháng hiện tại). */
+    /** Number of months the monthly chart can show (including the current month). */
     public static final int MONTHS_BACK = 12;
-    /** Streak tối đa tính được; đủ dài cho người học bình thường mà không phải quét toàn bộ lịch sử. */
+    /** Maximum streak computed; long enough for normal learners without scanning the whole history. */
     private static final int STREAK_LOOKBACK_DAYS = 400;
 
     private final StatsRepository statsRepository;
@@ -60,7 +60,7 @@ public class StatsService {
             switch (s.status()) {
                 case "MASTERED" -> mastered += s.count();
                 case "LEARNING", "REVIEW" -> learning += s.count();
-                default -> { } // NEW: tính là Chưa học
+                default -> { } // NEW: counted as Not started
             }
         }
         long totalWords = statsRepository.countWords(userId);
@@ -73,7 +73,7 @@ public class StatsService {
                 Math.max(totalWords - mastered - learning, 0));
     }
 
-    /** Hoạt động {@code days} ngày gần nhất (gồm hôm nay), đủ mọi ngày kể cả ngày không học. */
+    /** Activity for the last {@code days} days (including today), every day included even without study. */
     @Transactional(readOnly = true)
     public List<ActivityDay> activity(Long userId, int days) {
         int safeDays = ALLOWED_DAYS.contains(days) ? days : 7;
@@ -84,8 +84,8 @@ public class StatsService {
     }
 
     /**
-     * Hoạt động từng ngày của một tháng trong 12 tháng gần nhất (tháng hiện tại chỉ tới hôm nay).
-     * {@code month} null = tháng hiện tại.
+     * Daily activity for one month within the last 12 months (the current month only up to today).
+     * {@code month} null = current month.
      */
     @Transactional(readOnly = true)
     public List<ActivityDay> monthly(Long userId, YearMonth month) {
@@ -99,7 +99,7 @@ public class StatsService {
         return daysBetween(userId, target.atDay(1), end);
     }
 
-    /** Mỗi ngày trong [from, to], kể cả ngày không học. */
+    /** Every day in [from, to], including days without study. */
     private List<ActivityDay> daysBetween(Long userId, LocalDate from, LocalDate to) {
         Map<LocalDate, long[]> byDay = new HashMap<>();
         for (DailyCount c : statsRepository.countByDay(userId, from.atStartOfDay())) {

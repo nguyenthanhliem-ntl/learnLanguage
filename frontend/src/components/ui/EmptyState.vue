@@ -7,7 +7,7 @@ defineProps({
 
 <template>
   <div class="flex flex-col items-center px-6 py-14 text-center">
-    <!-- Minh họa: chồng flashcard -->
+    <!-- Illustration: a stack of flashcards -->
     <svg
       class="h-28 w-36"
       viewBox="0 0 144 112"

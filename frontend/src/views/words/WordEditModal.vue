@@ -10,7 +10,7 @@ import WordFormFields from './WordFormFields.vue'
 import t from '@/locales/vi'
 
 const props = defineProps({
-  word: { type: Object, default: null }, // null = đóng
+  word: { type: Object, default: null }, // null = closed
 })
 const emit = defineEmits(['close', 'saved'])
 
@@ -25,7 +25,7 @@ const { checking, duplicate, sameWord, reset: resetCheck, checkNow } =
 
 watch(() => props.word, (w) => {
   if (!w) return
-  // Từ cũ (trước khi có cột Loại từ) có thể thiếu: người dùng phải bổ sung khi sửa
+  // Older words (before the part-of-speech column) may lack it: the user must fill it in when editing
   for (const f of FIELDS) form[f] = w[f] ?? ''
   error.value = null
   resetCheck()

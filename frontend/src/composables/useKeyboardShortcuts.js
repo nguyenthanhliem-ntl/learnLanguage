@@ -1,9 +1,9 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 
 /**
- * Đăng ký phím tắt khi component đang hiển thị.
- * {@code handlers} dạng { ' ': fn, ArrowRight: fn, '1': fn }. Bỏ qua khi đang gõ trong ô nhập
- * hoặc khi đang có popup mở.
+ * Registers keyboard shortcuts while the component is shown.
+ * {@code handlers} looks like { ' ': fn, ArrowRight: fn, '1': fn }. Ignored while typing in an input
+ * or while a popup is open.
  */
 export function useKeyboardShortcuts(handlers) {
   function onKeydown(e) {

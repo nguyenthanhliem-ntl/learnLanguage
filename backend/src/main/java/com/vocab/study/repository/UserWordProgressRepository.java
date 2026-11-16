@@ -21,14 +21,14 @@ public interface UserWordProgressRepository extends JpaRepository<UserWordProgre
     @Query("select count(p) from UserWordProgress p where " + LEARNED)
     long countLearned(@Param("userId") Long userId);
 
-    /** Từ đến hạn ôn (next_review_date <= hôm nay), hạn sớm nhất trước. {@code exclude} không được rỗng. */
+    /** Words due for review (next_review_date <= today), earliest due first. {@code exclude} must not be empty. */
     @Query("select p from UserWordProgress p where " + LEARNED
             + " and p.nextReviewDate <= :today and p.wordId not in :exclude"
             + " order by p.nextReviewDate, p.id")
     List<UserWordProgress> findDue(@Param("userId") Long userId, @Param("today") LocalDate today,
                                    @Param("exclude") Collection<Long> exclude, Pageable pageable);
 
-    /** Từ chưa đến hạn: sai nhiều trước, lâu chưa ôn trước. {@code exclude} không được rỗng. */
+    /** Words not due yet: most mistakes first, then least recently reviewed. {@code exclude} must not be empty. */
     @Query("select p from UserWordProgress p where " + LEARNED
             + " and (p.nextReviewDate is null or p.nextReviewDate > :today) and p.wordId not in :exclude"
             + " order by p.wrongCount desc, p.lastReviewedAt asc nulls first, p.id")

@@ -5,9 +5,9 @@ import AnswerFeedback from './AnswerFeedback.vue'
 import NextButton from './NextButton.vue'
 import QuestionPrompt from './QuestionPrompt.vue'
 
-// Chọn 1 trong 4 từ tiếng Anh theo gợi ý (nghĩa hoặc phiên âm).
-// Chọn sai: ô đó đỏ, vẫn được chọn lại các ô khác (không lộ đáp án). Chọn trúng: ô đó xanh + hiện thông tin từ bên dưới.
-// Điểm chỉ tính lần chọn đầu tiên ('answered'); chọn trúng ở lần sau thì emit 'solved' để tự sang câu tiếp.
+// Pick 1 of 4 English words from the hint (meaning or phonetic).
+// Wrong pick: that option turns red, the others can still be picked (the answer is not revealed). Correct pick: green + word details below.
+// Only the first pick is scored ('answered'); a later correct pick emits 'solved' to move on automatically.
 const props = defineProps({
   question: { type: Object, required: true }, // { word, prompt, options: [{ id, word }] }
 })
@@ -41,7 +41,7 @@ function optionClass(option) {
   return 'border-border bg-surface hover:border-primary-300 hover:bg-primary-50/50'
 }
 
-// Phím 1–4 chọn đáp án
+// Keys 1–4 pick an answer
 useKeyboardShortcuts(Object.fromEntries(
   [0, 1, 2, 3].map((i) => [String(i + 1), () => {
     const option = props.question.options[i]
@@ -54,7 +54,7 @@ useKeyboardShortcuts(Object.fromEntries(
   <div class="space-y-5">
     <QuestionPrompt :question="question" />
 
-    <!-- 4 đáp án: lưới 2 hàng x 2 cột, các ô cao bằng nhau -->
+    <!-- 4 answers: 2 rows x 2 columns, equal heights -->
     <div class="grid grid-cols-2 gap-3">
       <button
         v-for="(option, i) in question.options"
@@ -79,7 +79,7 @@ useKeyboardShortcuts(Object.fromEntries(
       />
     </div>
 
-    <!-- Chọn trúng: hiện đầy đủ thông tin của từ (ReviewSession đã tự phát âm) -->
+    <!-- Correct pick: show the full word details (ReviewSession already pronounced it) -->
     <AnswerFeedback
       v-if="solved"
       :word="question.word"

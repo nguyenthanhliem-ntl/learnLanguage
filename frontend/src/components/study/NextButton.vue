@@ -2,8 +2,8 @@
 import AppIcon from '@/components/ui/AppIcon.vue'
 import t from '@/locales/vi'
 
-// Nút "Tiếp tục →" cố định bên phải hàng nút của câu ôn.
-// Chưa trả lời: bỏ qua câu này. Đã trả lời: sang câu tiếp theo.
+// "Continue →" button pinned to the right of the question's button row.
+// Not answered yet: skip this question. Answered: go to the next question.
 defineProps({
   answered: { type: Boolean, default: false },
 })

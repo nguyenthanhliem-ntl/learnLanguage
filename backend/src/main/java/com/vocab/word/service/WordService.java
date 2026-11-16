@@ -24,9 +24,9 @@ import com.vocab.word.entity.Word;
 import com.vocab.word.repository.WordRepository;
 
 /**
- * Kho từ của user. Mọi cách thêm từ (nhập tay, import Excel) đều đi qua đây để kiểm tra trùng
- * theo cùng một quy tắc: trùng khi giống cả 4 cột Từ mới, Loại từ, Phiên âm, Ngữ nghĩa
- * (so sánh lower(trim(...)), xem {@link #entryKey}). Cùng một từ được phép có nhiều nghĩa.
+ * The user's word bank. Every way of adding words (manual entry, Excel import) goes through here so duplicates are checked
+ * by the same rule: a duplicate is identical in all 4 columns Word, Part of speech, Phonetic, Meaning
+ * (compared with lower(trim(...)), see {@link #entryKey}). The same word may have several meanings.
  */
 @Service
 public class WordService {
@@ -47,25 +47,25 @@ public class WordService {
         this.clock = clock;
     }
 
-    // ---- Chuẩn hóa ----
+    // ---- Normalization ----
 
-    /** Làm sạch trước khi lưu: bỏ khoảng trắng đầu/cuối và gộp khoảng trắng thừa ở giữa. */
+    /** Cleans up before saving: trims leading/trailing whitespace and collapses repeated whitespace inside. */
     public static String clean(String value) {
         return value == null ? "" : value.strip().replaceAll("\\s+", " ");
     }
 
-    /** Như {@link #clean} nhưng chuỗi rỗng thành null. */
+    /** Like {@link #clean}, but an empty string becomes null. */
     public static String cleanOrNull(String value) {
         String cleaned = clean(value);
         return cleaned.isEmpty() ? null : cleaned;
     }
 
-    /** Khóa so sánh của một trường: lower(trim(value)). */
+    /** Comparison key of one field: lower(trim(value)). */
     public static String normalize(String value) {
         return clean(value).toLowerCase(Locale.ROOT);
     }
 
-    /** Khóa trùng của cả mục từ: 4 cột đã normalize. Khớp với unique index UX_WORDS_USER_ENTRY. */
+    /** Duplicate key of a whole entry: the 4 normalized columns. Matches the unique index UX_WORDS_USER_ENTRY. */
     public static String entryKey(String word, String partOfSpeech, String phonetic, String meaning) {
         return String.join(KEY_SEPARATOR, normalize(word), normalize(partOfSpeech), normalize(phonetic), normalize(meaning));
     }
@@ -78,11 +78,11 @@ public class WordService {
         return entryKey(w.getWord(), w.getPartOfSpeech(), w.getPhonetic(), w.getMeaning());
     }
 
-    // ---- Kiểm tra trùng ----
+    // ---- Duplicate checks ----
 
     /**
-     * Kiểm tra khi nhập tay: trả về các nghĩa đã có của từ này, và {@code exists = true}
-     * nếu một trong số đó giống hệt cả 4 cột. {@code excludeId} bỏ qua chính từ đang sửa.
+     * Check while typing: returns the existing meanings of this word, with {@code exists = true}
+     * if one of them is identical in all 4 columns. {@code excludeId} skips the word being edited.
      */
     @Transactional(readOnly = true)
     public WordCheckResponse check(Long userId, String word, String partOfSpeech, String phonetic, String meaning,
@@ -99,7 +99,7 @@ public class WordService {
         return new WordCheckResponse(exists, sameWord.stream().map(w -> toResponse(userId, w)).toList());
     }
 
-    /** Khóa trùng của toàn bộ kho, dùng cho import để kiểm tra hàng loạt. */
+    /** Duplicate keys of the whole bank, used by import for bulk checks. */
     @Transactional(readOnly = true)
     public Set<String> existingEntryKeys(Long userId) {
         Set<String> keys = new HashSet<>();
@@ -141,11 +141,11 @@ public class WordService {
 
     @Transactional
     public void delete(Long userId, Long id) {
-        // Tiến độ học và lịch sử của từ bị xóa theo (ON DELETE CASCADE)
+        // Learning progress and history of the word are deleted with it (ON DELETE CASCADE)
         wordRepository.delete(findOwned(userId, id));
     }
 
-    /** Insert nhiều từ theo batch JDBC (IDENTITY khiến Hibernate không batch được). Không kiểm tra trùng. */
+    /** Inserts many words with JDBC batches (IDENTITY prevents Hibernate from batching). No duplicate check. */
     @Transactional
     public void insertBatch(Long userId, List<NewWord> words) {
         if (words.isEmpty()) {
@@ -163,7 +163,7 @@ public class WordService {
         });
     }
 
-    // ---- Nội bộ ----
+    // ---- Internal ----
 
     private static NewWord cleaned(WordRequest r) {
         return new NewWord(clean(r.word()), clean(r.partOfSpeech()), clean(r.phonetic()), clean(r.meaning()));
@@ -182,7 +182,7 @@ public class WordService {
         try {
             wordRepository.saveAndFlush(entity);
         } catch (DataIntegrityViolationException e) {
-            // Hai request thêm cùng một từ gần như đồng thời: unique index chặn lại
+            // Two requests adding the same word almost at once: the unique index stops the second one
             throw duplicate();
         }
     }
@@ -201,7 +201,7 @@ public class WordService {
                 "Từ này đã có trong kho (giống cả từ mới, loại từ, phiên âm và ngữ nghĩa)");
     }
 
-    /** "%abc%" đã lower-case và escape ký tự đặc biệt của LIKE; null nếu không tìm kiếm. */
+    /** "%abc%" lower-cased with LIKE special characters escaped; null when not searching. */
     static String toLikePattern(String query) {
         if (query == null || query.isBlank()) {
             return null;

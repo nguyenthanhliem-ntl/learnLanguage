@@ -31,8 +31,8 @@ import com.vocab.word.entity.Word;
 import com.vocab.word.repository.WordRepository;
 
 /**
- * Ôn tập theo SM-2 (CLAUDE.md §5.4): ưu tiên từ đến hạn, sau đó tới các từ sai nhiều / lâu chưa ôn.
- * Mỗi lượt khoảng 20–30 từ: lấy tối đa 30 từ đến hạn, nếu chưa đủ 20 thì bù bằng từ chưa đến hạn.
+ * SM-2 review (CLAUDE.md §5.4): due words first, then words with many mistakes / not reviewed for a long time.
+ * Each round has about 20–30 words: up to 30 due words, topped up with not-yet-due words if fewer than 20.
  */
 @Service
 public class ReviewService {
@@ -59,10 +59,10 @@ public class ReviewService {
     }
 
     /**
-     * Tạo một lượt ôn.
+     * Builds one review round.
      *
-     * @param ids     nếu có: ôn đúng các từ này (vd ôn lại từ vừa sai); bỏ qua {@code exclude}
-     * @param exclude các từ đã ôn trong phiên này, không lấy lại
+     * @param ids     if given: review exactly these words (e.g. words just answered wrong); {@code exclude} is ignored
+     * @param exclude words already reviewed in this session, not picked again
      */
     @Transactional(readOnly = true)
     public ReviewRoundResponse getRound(Long userId, Collection<Long> ids, Collection<Long> exclude) {
@@ -78,7 +78,7 @@ public class ReviewService {
 
     private List<UserWordProgress> selectBySchedule(Long userId, Collection<Long> exclude) {
         LocalDate today = clock.today();
-        // "not in" với danh sách rỗng không hợp lệ trong SQL: dùng id không tồn tại
+        // "not in" with an empty list is invalid SQL: use an id that does not exist
         Collection<Long> safeExclude = (exclude == null || exclude.isEmpty()) ? List.of(-1L) : exclude;
 
         List<UserWordProgress> result = new ArrayList<>(
@@ -110,7 +110,7 @@ public class ReviewService {
                 .toList();
     }
 
-    /** Ghi nhận câu trả lời: cập nhật SM-2, bộ đếm đúng/sai và ghi log QUIZ / LISTEN. */
+    /** Records an answer: updates SM-2, the correct/wrong counters and logs QUIZ / LISTEN. */
     @Transactional
     public AnswerResponse answer(Long userId, Long wordId, AnswerRequest request) {
         UserWordProgress progress = progressRepository.findByUserIdAndWordId(userId, wordId)
@@ -121,10 +121,10 @@ public class ReviewService {
         boolean correct = request.correct();
         LocalDate today = clock.today();
         if (correct && !progress.isDue(today)) {
-            // Ôn sớm mà đúng: giữ nguyên lịch SM-2 (chỉ từ đến hạn mới được kéo dài khoảng cách ôn)
+            // Early review answered correctly: keep the SM-2 schedule (only due words get a longer interval)
             progress.recordEarlyCorrect(clock.now());
         } else {
-            // Đến hạn (đúng hoặc sai), hoặc sai khi ôn sớm (quên từ): cập nhật theo SM-2
+            // Due (correct or wrong), or wrong on an early review (word forgotten): update with SM-2
             progress.apply(sm2.next(progress.sm2State(), correct), correct, today, clock.now());
         }
         studyLogRepository.save(new StudyLog(userId, wordId, request.answer().activityType(), correct, clock.now()));

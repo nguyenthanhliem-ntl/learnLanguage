@@ -5,7 +5,7 @@ import AppIcon from '@/components/ui/AppIcon.vue'
 import ExampleSentence from '@/components/grammar/ExampleSentence.vue'
 import t from '@/locales/vi'
 
-// Ngữ pháp: bảng 12 thì (3 mốc thời gian × 4 dạng) và các cặp thì dễ nhầm
+// Grammar: table of the 12 tenses (3 time frames × 4 aspects) and easily confused tense pairs
 const groups = TIME_GROUPS.map((g) => ({
   ...g,
   items: ASPECTS.map((a) => ({
@@ -29,7 +29,7 @@ const groups = TIME_GROUPS.map((g) => ({
       </p>
     </header>
 
-    <!-- Bảng 12 thì -->
+    <!-- Table of 12 tenses -->
     <section class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
       <h2 class="text-lg font-semibold">
         {{ t.grammar.overviewTitle }}
@@ -73,7 +73,7 @@ const groups = TIME_GROUPS.map((g) => ({
       </div>
     </section>
 
-    <!-- Các thì dễ nhầm -->
+    <!-- Easily confused tenses -->
     <section>
       <h2 class="text-lg font-semibold">
         {{ t.grammar.compareTitle }}

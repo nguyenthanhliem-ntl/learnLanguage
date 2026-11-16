@@ -26,7 +26,7 @@ import com.vocab.word.dto.WordStatus;
 import com.vocab.word.entity.Word;
 import com.vocab.word.repository.WordRepository;
 
-/** Học từ mới bằng flashcard (CLAUDE.md §5.3). */
+/** Learning new words with flashcards (CLAUDE.md §5.3). */
 @Service
 public class LearnService {
 
@@ -55,10 +55,10 @@ public class LearnService {
     }
 
     /**
-     * Lấy ngẫu nhiên các từ chưa học, từ kho tự thêm hoặc từ cấp độ user đang chọn.
-     * Học theo cấp độ: chép thêm từ của cấp độ sang kho user khi số từ chưa học trong kho không đủ.
-     * Không truyền {@code limit}: lấy đủ phần còn thiếu của mục tiêu hôm nay (0 nếu đã đạt).
-     * Có {@code limit} ("Học thêm"): lấy đúng số đó, không tính mục tiêu.
+     * Picks random unlearned words, from the self-added bank or from the level the user selected.
+     * Studying by level: copies more of the level's words into the user's bank when there are not enough unlearned ones.
+     * Without {@code limit}: returns what is left of today's goal (0 if already reached).
+     * With {@code limit} ("Learn more"): returns exactly that many, ignoring the goal.
      */
     @Transactional
     public NewWordsResponse getNewWords(Long userId, Integer limit) {
@@ -93,7 +93,7 @@ public class LearnService {
         return words.stream().map(w -> WordResponse.from(w, null)).toList();
     }
 
-    /** "Đã nhớ": đưa từ vào lịch ôn (SM-2 lần đúng đầu tiên) và ghi log LEARN. Bấm lại không tính 2 lần. */
+    /** "Remembered": schedules the word for review (first correct SM-2 step) and logs LEARN. Pressing again does not count twice. */
     @Transactional
     public RememberResponse remember(Long userId, Long wordId) {
         wordRepository.findByIdAndUserId(wordId, userId)

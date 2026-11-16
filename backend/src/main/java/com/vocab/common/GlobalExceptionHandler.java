@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ApiError.of("BAD_REQUEST", "Dữ liệu gửi lên không đúng định dạng"));
     }
 
-    /** Tham số trên URL sai kiểu, vd {@code month=abc}. */
+    /** URL parameter of the wrong type, e.g. {@code month=abc}. */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         return ResponseEntity.badRequest()

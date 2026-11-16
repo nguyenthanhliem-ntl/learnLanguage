@@ -30,7 +30,7 @@ public class UserService {
     @Transactional
     public void changePassword(Long userId, ChangePasswordRequest request) {
         User user = findUser(userId);
-        // 400 chứ không phải 401: sai mật khẩu cũ không có nghĩa là phiên đăng nhập hết hạn
+        // 400 rather than 401: a wrong current password does not mean the session expired
         if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
             throw ApiException.badRequest("WRONG_PASSWORD", "Mật khẩu hiện tại không đúng");
         }
@@ -55,7 +55,7 @@ public class UserService {
         return UserResponse.from(user);
     }
 
-    /** {@code level} đã được kiểm tra hợp lệ (A1–C2) hoặc null. */
+    /** {@code level} has already been validated (A1–C2) or is null. */
     @Transactional
     public UserResponse setStudyLevel(Long userId, String level) {
         User user = findUser(userId);

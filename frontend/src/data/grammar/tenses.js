@@ -1,6 +1,6 @@
-// Nội dung 12 thì tiếng Anh (tự soạn, đối chiếu British Council LearnEnglish / Cambridge Grammar).
-// Mỗi thì: công thức 3 dạng câu, cách dùng (kèm ví dụ), dấu hiệu nhận biết, trường hợp đặc biệt & lưu ý.
-// Bài tập 3 cấp độ nằm ở tenseExercises.js.
+// Content for the 12 English tenses (written for this app, checked against British Council LearnEnglish / Cambridge Grammar).
+// Each tense: formulas for 3 sentence types, uses (with examples), signal words, special cases & notes.
+// The 3-level exercises live in tenseExercises.js.
 
 export const TIME_GROUPS = [
   { key: 'present', label: 'Hiện tại' },
@@ -16,7 +16,7 @@ export const ASPECTS = [
 ]
 
 export const tenses = [
-  // ───────────────────────── HIỆN TẠI ─────────────────────────
+  // ───────────────────────── PRESENT ─────────────────────────
   {
     slug: 'present-simple',
     name: 'Hiện tại đơn',
@@ -125,7 +125,7 @@ export const tenses = [
     ],
   },
 
-  // ───────────────────────── QUÁ KHỨ ─────────────────────────
+  // ───────────────────────── PAST ─────────────────────────
   {
     slug: 'past-simple',
     name: 'Quá khứ đơn',
@@ -227,7 +227,7 @@ export const tenses = [
     ],
   },
 
-  // ───────────────────────── TƯƠNG LAI ─────────────────────────
+  // ───────────────────────── FUTURE ─────────────────────────
   {
     slug: 'future-simple',
     name: 'Tương lai đơn',
@@ -326,7 +326,7 @@ export const tenses = [
   },
 ]
 
-// Các thì hay bị nhầm với nhau
+// Tense pairs that are often confused
 export const comparisons = [
   {
     title: 'Hiện tại đơn và Hiện tại tiếp diễn',

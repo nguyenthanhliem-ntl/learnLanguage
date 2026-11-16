@@ -8,11 +8,11 @@ import AlertBox from '@/components/ui/AlertBox.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import t from '@/locales/vi'
 
-// Kho từ vựng trên trang Tổng quan.
-// - Trên: "Kho từ vựng của tôi" = toàn bộ từ trong kho (tự thêm + đã học từ các cấp độ). Bấm vào: từ mới lấy từ
-//   các từ tự thêm, phần ôn vẫn gồm mọi từ đã học.
-// - Dưới: các cấp độ A1–C2. Bấm một cấp: từ mới lấy ngẫu nhiên từ cấp đó; tiến độ từng cấp giữ nguyên.
-// Chọn xong thì vào Luyện tập ngay. Cấp đang làm nguồn từ mới chỉ được tô viền nhẹ.
+// Vocabulary bank on the Dashboard.
+// - Top: "My vocabulary" = every word in the bank (self-added + learned from levels). Clicking it: new words come from
+//     the self-added words, review still covers every learned word.
+// - Bottom: levels A1–C2. Clicking a level: new words are drawn at random from it; each level keeps its progress.
+// Choosing one opens Practice right away. The level currently used as the new-word source only gets a light border.
 const auth = useAuthStore()
 const router = useRouter()
 
@@ -52,7 +52,7 @@ async function load() {
   }
 }
 
-/** level: 'A1'…'C2', null = kho tự thêm. */
+/** level: 'A1'…'C2', null = self-added bank. */
 async function choose(key, level) {
   if (busyKey.value) return
   busyKey.value = key
@@ -78,7 +78,7 @@ onMounted(load)
       :message="error"
     />
 
-    <!-- Phần trên: Kho từ vựng của tôi (cùng kích thước với một thẻ cấp độ) -->
+    <!-- Top part: My vocabulary (same size as a level card) -->
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
       <div
         v-if="loading"
@@ -117,7 +117,7 @@ onMounted(load)
       </button>
     </div>
 
-    <!-- Phần dưới: các cấp độ A1–C2 -->
+    <!-- Bottom part: levels A1–C2 -->
     <div class="mt-6 border-t border-border pt-6">
       <h2 class="text-lg font-semibold sm:text-xl">
         {{ t.library.title }}

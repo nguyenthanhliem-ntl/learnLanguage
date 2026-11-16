@@ -1,6 +1,6 @@
 /**
- * v-reveal: phần tử hiện dần (mờ → rõ, trượt lên) khi cuộn tới.
- * v-reveal="150" để trễ 150ms. Người dùng bật "giảm chuyển động" thì hiện luôn.
+ * v-reveal: the element fades in (transparent → visible, sliding up) when scrolled into view.
+ * v-reveal="150" delays it by 150ms. Shown immediately when the user prefers reduced motion.
  */
 const reduceMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches

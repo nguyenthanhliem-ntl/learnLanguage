@@ -46,8 +46,8 @@ public class StudyController {
     }
 
     /**
-     * Một lượt ôn 20–30 từ theo SM-2.
-     * {@code exclude}: các từ đã ôn trong phiên này. {@code ids}: ôn đúng các từ này (vd từ vừa sai).
+     * One review round of 20–30 words based on SM-2.
+     * {@code exclude}: words already reviewed in this session. {@code ids}: review exactly these words (e.g. words just answered wrong).
      */
     @GetMapping("/review")
     public ReviewRoundResponse review(@AuthenticationPrincipal AuthUser user,

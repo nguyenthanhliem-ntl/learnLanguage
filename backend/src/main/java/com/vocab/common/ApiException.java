@@ -2,7 +2,7 @@ package com.vocab.common;
 
 import org.springframework.http.HttpStatus;
 
-/** Lỗi nghiệp vụ có mã lỗi và HTTP status, được GlobalExceptionHandler chuyển thành ApiError. */
+/** Business error with an error code and HTTP status, turned into an ApiError by GlobalExceptionHandler. */
 public class ApiException extends RuntimeException {
 
     private final HttpStatus status;

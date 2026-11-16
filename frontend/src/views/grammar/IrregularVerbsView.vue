@@ -7,11 +7,11 @@ import EmptyState from '@/components/ui/EmptyState.vue'
 import SpeakButton from '@/components/ui/SpeakButton.vue'
 import t from '@/locales/vi'
 
-// Bảng động từ bất quy tắc: tìm kiếm, lọc theo nhóm (thông dụng / quy luật A-B-C), tự kiểm tra (che V2, V3)
+// Irregular verbs table: search, filter by group (common / A-B-C patterns), self-test (hide V2, V3)
 const query = ref('')
 const filter = ref('all') // all | common | AAA | ABB | ABA | ABC
 const selfTest = ref(false)
-const revealed = reactive(new Set()) // các ô V2/V3 đã mở khi tự kiểm tra, khóa "v1:col"
+const revealed = reactive(new Set()) // V2/V3 cells revealed in self-test mode, key "v1:col"
 
 const filters = computed(() => [
   { key: 'all', label: t.irregular.all },
@@ -31,12 +31,12 @@ const rows = computed(() => {
 
 const activePattern = computed(() => PATTERNS.find((p) => p.key === filter.value) ?? null)
 
-// Đổi chế độ / bộ lọc thì che lại toàn bộ
+// Changing the mode / filter hides everything again
 watch([selfTest, filter], () => revealed.clear())
 
 const isHidden = (v, col) => selfTest.value && !revealed.has(`${v.v1}:${col}`)
 const reveal = (v, col) => revealed.add(`${v.v1}:${col}`)
-// Đọc cả 3 dạng (dạng có "/" đọc dạng đầu)
+// Read all 3 forms (for "/" forms, read the first one)
 const spoken = (v) => [v.v1, v.v2, v.v3].map((f) => f.split('/')[0]).join(', ')
 </script>
 
@@ -55,7 +55,7 @@ const spoken = (v) => [v.v1, v.v2, v.v3].map((f) => f.split('/')[0]).join(', ')
     </header>
 
     <section class="rounded-2xl border border-border bg-surface p-4 shadow-sm sm:p-6">
-      <!-- Tìm kiếm + tự kiểm tra -->
+      <!-- Search + self-test -->
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
         <label class="relative flex-1">
           <span class="sr-only">{{ t.irregular.search }}</span>
@@ -81,7 +81,7 @@ const spoken = (v) => [v.v1, v.v2, v.v3].map((f) => f.split('/')[0]).join(', ')
         </label>
       </div>
 
-      <!-- Bộ lọc -->
+      <!-- Filters -->
       <div
         class="mt-4 flex flex-wrap gap-2"
         role="group"
@@ -110,7 +110,7 @@ const spoken = (v) => [v.v1, v.v2, v.v3].map((f) => f.split('/')[0]).join(', ')
         </template>
       </p>
 
-      <!-- Bảng (desktop) -->
+      <!-- Table (desktop) -->
       <div
         v-if="rows.length"
         class="mt-4 hidden overflow-hidden rounded-xl border border-border md:block"
@@ -180,7 +180,7 @@ const spoken = (v) => [v.v1, v.v2, v.v3].map((f) => f.split('/')[0]).join(', ')
         </table>
       </div>
 
-      <!-- Danh sách thẻ (mobile) -->
+      <!-- Card list (mobile) -->
       <ul
         v-if="rows.length"
         class="mt-4 space-y-2 md:hidden"
@@ -238,7 +238,7 @@ const spoken = (v) => [v.v1, v.v2, v.v3].map((f) => f.split('/')[0]).join(', ')
       </div>
     </section>
 
-    <!-- Lưu ý -->
+    <!-- Notes -->
     <section class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
       <h2 class="text-lg font-semibold">
         {{ t.irregular.notes }}

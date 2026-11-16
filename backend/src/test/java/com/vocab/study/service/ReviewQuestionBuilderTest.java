@@ -28,7 +28,7 @@ class ReviewQuestionBuilderTest {
     }
 
     private static final List<QuizOption> POOL = List.of(
-            new QuizOption(1L, "book"), new QuizOption(2L, "Book"),   // cùng mặt chữ, khác nghĩa
+            new QuizOption(1L, "book"), new QuizOption(2L, "Book"),   // same spelling, different meaning
             new QuizOption(3L, "apple"), new QuizOption(4L, "cat"),
             new QuizOption(5L, "dog"), new QuizOption(6L, "sun"));
 
@@ -44,7 +44,7 @@ class ReviewQuestionBuilderTest {
             assertThat(q.prompt()).isNotEqualTo(PromptType.LISTEN);
             assertThat(q.options()).hasSize(4);
             assertThat(q.options()).extracting(o -> WordService.normalize(o.word())).doesNotHaveDuplicates();
-            // Đáp án đúng có mặt đúng 1 lần, đáp án nhiễu không trùng mặt chữ với đáp án
+            // The correct answer appears exactly once, distractors never share its spelling
             assertThat(q.options()).filteredOn(o -> WordService.normalize(o.word())
                     .equals(WordService.normalize(q.word().word()))).hasSize(1)
                     .first().extracting(QuizOption::id).isEqualTo(q.word().id());
@@ -53,7 +53,7 @@ class ReviewQuestionBuilderTest {
 
     @Test
     void notEnoughOtherWords_onlyTypeQuestions() {
-        // Chỉ có 3 mặt chữ khác nhau: book, apple, cat -> không đủ 3 đáp án nhiễu
+        // Only 3 different spellings: book, apple, cat -> not enough for 3 distractors
         List<QuizOption> smallPool = List.of(
                 new QuizOption(1L, "book"), new QuizOption(2L, "book"),
                 new QuizOption(3L, "apple"), new QuizOption(4L, "cat"));

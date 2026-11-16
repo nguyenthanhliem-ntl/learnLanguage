@@ -30,7 +30,7 @@ public class User {
     @Column(name = "CREATED_AT", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    /** Cấp độ đang học (A1–C2); null = học từ trong kho tự thêm. */
+    /** Level being studied (A1–C2); null = study from the self-added bank. */
     @Column(name = "STUDY_LEVEL", length = 2)
     private String studyLevel;
 

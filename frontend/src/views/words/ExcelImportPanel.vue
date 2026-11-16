@@ -44,7 +44,7 @@ function pick(selected) {
 
 function onChange(e) {
   pick(e.target.files?.[0])
-  e.target.value = '' // cho phép chọn lại cùng file
+  e.target.value = '' // allow picking the same file again
 }
 
 function onDrop(e) {
@@ -92,7 +92,7 @@ function reset() {
 
 <template>
   <div class="grid gap-6 lg:grid-cols-5">
-    <!-- Hướng dẫn định dạng -->
+    <!-- Format guide -->
     <aside class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6 lg:col-span-2">
       <h2 class="font-semibold">
         {{ t.excel.formatTitle }}
@@ -142,7 +142,7 @@ function reset() {
         :details="error.details"
       />
 
-      <!-- Kết quả import -->
+      <!-- Import result -->
       <section
         v-if="result"
         class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6"
@@ -242,7 +242,7 @@ function reset() {
         </div>
       </section>
 
-      <!-- Vùng chọn file -->
+      <!-- File drop zone -->
       <section
         v-else
         class="rounded-2xl border-2 border-dashed bg-surface p-6 text-center transition sm:p-10"

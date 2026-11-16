@@ -6,10 +6,10 @@ import AppIcon from '@/components/ui/AppIcon.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import t from '@/locales/vi'
 
-// Bài tập của một thì, chia 3 cấp Dễ · Trung bình · Khó (tab). Hai dạng câu:
-//   fill   – gõ vào chỗ trống "___" rồi Kiểm tra / Enter
-//   choice – chọn 1 trong các phương án (chỉ tính lần chọn đầu, hiện luôn đáp án đúng)
-// Mỗi cấp có điểm và nút Làm lại riêng. Chỉ chấm trên trình duyệt, không lưu kết quả.
+// Exercises for one tense, in 3 levels Easy · Medium · Hard (tabs). Two question types:
+//     fill   – type into the "___" blank, then Check / Enter
+//     choice – pick one of the options (only the first pick counts, the correct answer is always shown)
+// Each level has its own score and Retry button. Graded in the browser only, results are not saved.
 const props = defineProps({
   sets: { type: Object, required: true }, // { easy: [...], medium: [...], hard: [...] }
 })
@@ -17,7 +17,7 @@ const props = defineProps({
 const levels = LEVELS.filter((l) => props.sets[l.key]?.length)
 const level = ref(levels[0]?.key ?? 'easy')
 
-// Trạng thái từng câu theo cấp: { value, picked, result }
+// Per-question state for each level: { value, picked, result }
 const state = reactive(Object.fromEntries(levels.map((l) => [
   l.key,
   props.sets[l.key].map(() => ({ value: '', picked: null, result: null })),
@@ -53,7 +53,7 @@ function reset() {
   })
 }
 
-// Tách câu quanh chỗ trống "___" để đặt ô nhập / ô đáp án ngay trong câu
+// Split the sentence around the "___" blank so the input / answer sits inside the sentence
 const parts = (q) => {
   const i = q.indexOf('___')
   return i < 0 ? [q, ''] : [q.slice(0, i), q.slice(i + 3)]
@@ -71,7 +71,7 @@ const correctAnswer = (ex) => (ex.type === 'choice' ? ex.answer : ex.answers[0])
 
 <template>
   <div>
-    <!-- Chọn cấp độ -->
+    <!-- Level picker -->
     <div
       class="grid grid-cols-3 gap-2 rounded-2xl bg-canvas p-1"
       role="tablist"
@@ -105,7 +105,7 @@ const correctAnswer = (ex) => (ex.type === 'choice' ? ex.answer : ex.answers[0])
         class="rounded-2xl border p-4 transition"
         :class="current[i].result === true ? 'border-success bg-success/10' : current[i].result === false ? 'border-danger bg-danger/10' : 'border-border bg-surface'"
       >
-        <!-- Dạng điền -->
+        <!-- Fill-in question -->
         <form
           v-if="ex.type === 'fill'"
           class="flex flex-wrap items-center gap-x-2 gap-y-3"
@@ -137,7 +137,7 @@ const correctAnswer = (ex) => (ex.type === 'choice' ? ex.answer : ex.answers[0])
           </BaseButton>
         </form>
 
-        <!-- Dạng chọn -->
+        <!-- Choice question -->
         <div v-else>
           <p class="text-ink-900">
             <span class="mr-1 text-sm font-semibold text-ink-500">{{ i + 1 }}.</span>

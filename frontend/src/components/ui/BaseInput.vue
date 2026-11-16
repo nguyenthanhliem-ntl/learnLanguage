@@ -1,7 +1,7 @@
 <script setup>
 import { ref, useId } from 'vue'
 
-// Thuộc tính lạ (maxlength, autocapitalize, spellcheck...) được gắn thẳng vào <input>
+// Unknown attributes (maxlength, autocapitalize, spellcheck...) are passed straight to <input>
 defineOptions({ inheritAttrs: false })
 
 const model = defineModel({ type: String, default: '' })
@@ -14,7 +14,7 @@ defineProps({
   error: { type: String, default: '' },
   autocomplete: { type: String, default: 'off' },
   required: { type: Boolean, default: false },
-  mono: { type: Boolean, default: false }, // dùng cho phiên âm IPA
+  mono: { type: Boolean, default: false }, // used for IPA phonetics
 })
 
 const id = useId()

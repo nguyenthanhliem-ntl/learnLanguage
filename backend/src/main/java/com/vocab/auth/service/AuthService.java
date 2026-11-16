@@ -46,7 +46,7 @@ public class AuthService {
         try {
             userRepository.saveAndFlush(user);
         } catch (DataIntegrityViolationException e) {
-            // Hai request đăng ký cùng lúc cùng tên: unique constraint chặn lại
+            // Two concurrent sign-ups with the same name: the unique constraint stops the second one
             throw usernameTaken();
         }
         return toResponse(user);
@@ -65,7 +65,7 @@ public class AuthService {
         return new AuthResponse(jwtService.generate(user.getId(), user.getUsername()), UserResponse.from(user));
     }
 
-    /** Tên đăng nhập không phân biệt hoa/thường. */
+    /** Usernames are case-insensitive. */
     private static String normalize(String username) {
         return username.trim().toLowerCase(Locale.ROOT);
     }

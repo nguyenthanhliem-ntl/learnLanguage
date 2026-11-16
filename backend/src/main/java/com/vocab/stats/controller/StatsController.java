@@ -29,14 +29,14 @@ public class StatsController {
         return statsService.dashboard(user.id());
     }
 
-    /** {@code days}: 7 hoặc 30. */
+    /** {@code days}: 7 or 30. */
     @GetMapping("/activity")
     public List<ActivityDay> activity(@AuthenticationPrincipal AuthUser user,
                                       @RequestParam(defaultValue = "7") int days) {
         return statsService.activity(user.id(), days);
     }
 
-    /** {@code month}: yyyy-MM trong 12 tháng gần nhất, bỏ trống = tháng hiện tại. */
+    /** {@code month}: yyyy-MM within the last 12 months, empty = current month. */
     @GetMapping("/monthly")
     public List<ActivityDay> monthly(@AuthenticationPrincipal AuthUser user,
                                      @RequestParam(required = false) YearMonth month) {

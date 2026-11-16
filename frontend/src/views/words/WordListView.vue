@@ -33,7 +33,7 @@ const items = computed(() => data.value?.items ?? [])
 const isEmptyBank = computed(() => data.value && data.value.totalElements === 0 && !q.value.trim())
 const isNoResult = computed(() => data.value && data.value.totalElements === 0 && q.value.trim())
 
-// Bỏ kết quả của request cũ nếu người dùng đã gõ/chuyển trang tiếp
+// Discard results of an older request if the user has kept typing / changed page
 let requestId = 0
 
 async function load() {
@@ -43,7 +43,7 @@ async function load() {
   try {
     const res = await wordsApi.list({ q: q.value.trim(), page: page.value, size: PAGE_SIZE })
     if (id !== requestId) return
-    // Xóa hết từ ở trang cuối thì lùi về trang trước
+    // Deleting every word on the last page goes back to the previous page
     if (res.items.length === 0 && page.value > 0 && res.totalPages > 0) {
       page.value = res.totalPages - 1
       return load()
@@ -96,7 +96,7 @@ onMounted(load)
 
 <template>
   <div class="space-y-6">
-    <!-- Tiêu đề -->
+    <!-- Title -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <h1 class="text-2xl font-bold sm:text-3xl">
@@ -121,7 +121,7 @@ onMounted(load)
       </BaseButton>
     </div>
 
-    <!-- Tìm kiếm (ẩn khi kho trống) -->
+    <!-- Search (hidden when the bank is empty) -->
     <div
       v-if="!isEmptyBank"
       class="relative"
@@ -157,7 +157,7 @@ onMounted(load)
       </BaseButton>
     </div>
 
-    <!-- Lần tải đầu: skeleton -->
+    <!-- First load: skeleton -->
     <div
       v-if="!data && loading"
       class="space-y-2"
@@ -178,7 +178,7 @@ onMounted(load)
       </div>
     </div>
 
-    <!-- Kho trống -->
+    <!-- Empty bank -->
     <div
       v-else-if="isEmptyBank"
       class="rounded-3xl border border-border bg-surface shadow-sm"
@@ -199,7 +199,7 @@ onMounted(load)
       </EmptyState>
     </div>
 
-    <!-- Không có kết quả tìm kiếm -->
+    <!-- No search results -->
     <div
       v-else-if="isNoResult"
       class="rounded-3xl border border-border bg-surface shadow-sm"
@@ -217,14 +217,14 @@ onMounted(load)
       </EmptyState>
     </div>
 
-    <!-- Danh sách -->
+    <!-- List -->
     <div
       v-else-if="data"
       class="space-y-4 transition-opacity"
       :class="loading ? 'opacity-60' : ''"
       :aria-busy="loading"
     >
-      <!-- Desktop: bảng -->
+      <!-- Desktop: table -->
       <div class="hidden overflow-hidden rounded-2xl border border-border bg-surface shadow-sm md:block">
         <table class="w-full text-left text-sm">
           <thead class="bg-canvas text-ink-500">
@@ -310,7 +310,7 @@ onMounted(load)
         </table>
       </div>
 
-      <!-- Mobile: thẻ -->
+      <!-- Mobile: cards -->
       <ul class="space-y-2 md:hidden">
         <li
           v-for="w in items"

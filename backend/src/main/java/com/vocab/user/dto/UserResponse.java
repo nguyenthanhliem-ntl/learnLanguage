@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.vocab.user.entity.User;
 
-/** @param studyLevel cấp độ đang học (A1–C2), null = kho tự thêm */
+/** @param studyLevel level being studied (A1–C2), null = self-added bank */
 public record UserResponse(Long id, String username, int dailyGoal, String studyLevel, LocalDateTime createdAt) {
 
     public static UserResponse from(User user) {

@@ -1,6 +1,6 @@
 import t from '@/locales/vi'
 
-/** Lấy thông báo lỗi tiếng Việt từ response dạng { code, message, details } của backend. */
+/** Gets the Vietnamese error message from the backend's { code, message, details } response. */
 export function getErrorMessage(error) {
   if (!error?.response) {
     return t.errors.network
@@ -8,7 +8,7 @@ export function getErrorMessage(error) {
   return error.response.data?.message || t.errors.unknown
 }
 
-/** Danh sách lỗi chi tiết (vd lỗi validate từng trường), bỏ phần "field: " ở đầu. */
+/** Detailed errors (e.g. per-field validation errors), with the leading "field: " removed. */
 export function getErrorDetails(error) {
   const details = error?.response?.data?.details
   if (!Array.isArray(details)) return []

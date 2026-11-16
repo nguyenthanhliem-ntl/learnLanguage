@@ -47,7 +47,7 @@ class ExcelImportServiceTest {
         service = new ExcelImportService(wordService);
     }
 
-    /** Tạo workbook với dòng tiêu đề + các dòng dữ liệu (null = ô trống, mảng null = dòng không tồn tại). */
+    /** Builds a workbook with a header row + data rows (null = empty cell, null array = missing row). */
     private static Workbook workbook(String[]... rows) {
         Workbook wb = new XSSFWorkbook();
         Sheet sheet = wb.createSheet();
@@ -83,15 +83,15 @@ class ExcelImportServiceTest {
                 .thenReturn(Set.of(WordService.entryKey("banana", "noun", "/bəˈnɑː.nə/", "chuối")));
 
         ImportResult result = service.importWorkbook(USER, workbook(
-                new String[] {" Book ", "noun", "/bʊk/", "quyển sách"},       // 2: hợp lệ
-                new String[] {null, null, null, null},                        // 3: trống -> bỏ qua
-                null,                                                         // 4: không tồn tại -> bỏ qua
-                new String[] {null, "noun", "/x/", "thiếu từ"},               // 5: lỗi thiếu từ mới
-                new String[] {"cat", null, "", "con mèo"},                    // 6: lỗi thiếu loại từ + phiên âm
-                new String[] {"BOOK", "Noun", "/bʊk/", "Quyển  sách"},        // 7: giống dòng 2 cả 4 cột -> trùng
-                new String[] {"book", "verb", "/bʊk/", "đặt chỗ"},            // 8: cùng từ, khác loại -> hợp lệ
-                new String[] {"Banana", "NOUN", "/bəˈnɑː.nə/", "chuối"},      // 9: đã có trong kho -> trùng
-                new String[] {"dog", "noun", "/dɒɡ/", null}));                // 10: lỗi thiếu ngữ nghĩa
+                new String[] {" Book ", "noun", "/bʊk/", "quyển sách"},       // 2: valid
+                new String[] {null, null, null, null},                        // 3: blank -> skipped
+                null,                                                         // 4: missing -> skipped
+                new String[] {null, "noun", "/x/", "thiếu từ"},               // 5: error, word missing
+                new String[] {"cat", null, "", "con mèo"},                    // 6: error, part of speech + phonetic missing
+                new String[] {"BOOK", "Noun", "/bʊk/", "Quyển  sách"},        // 7: identical to row 2 in all 4 columns -> duplicate
+                new String[] {"book", "verb", "/bʊk/", "đặt chỗ"},            // 8: same word, different part of speech -> valid
+                new String[] {"Banana", "NOUN", "/bəˈnɑː.nə/", "chuối"},      // 9: already in the bank -> duplicate
+                new String[] {"dog", "noun", "/dɒɡ/", null}));                // 10: error, meaning missing
 
         assertThat(result.added()).isEqualTo(2);
         assertThat(result.duplicates()).isEqualTo(2);

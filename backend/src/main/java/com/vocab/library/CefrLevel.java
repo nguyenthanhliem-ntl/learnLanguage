@@ -3,7 +3,7 @@ package com.vocab.library;
 import java.util.Arrays;
 import java.util.Optional;
 
-/** Cấp độ từ vựng theo khung CEFR. */
+/** Vocabulary level on the CEFR scale. */
 public enum CefrLevel {
     A1, A2, B1, B2, C1, C2;
 

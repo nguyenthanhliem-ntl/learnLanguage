@@ -10,8 +10,8 @@ import t from '@/locales/vi'
 const auth = useAuthStore()
 const route = useRoute()
 
-// Menu chính: Tổng quan · Từ vựng (xổ xuống: Luyện tập, Kho từ, Thêm từ) · Ngữ pháp · Bất quy tắc.
-// Dùng chung cho header (desktop) và bottom navigation (mobile).
+// Main menu: Dashboard · Vocabulary (dropdown: Practice, Word bank, Add word) · Grammar · Irregular verbs.
+// Shared by the header (desktop) and the bottom navigation (mobile).
 const navItems = [
   { key: 'dashboard', name: 'dashboard', icon: 'home', ...t.nav.dashboard },
   {
@@ -35,7 +35,7 @@ function isActive(item) {
   return item.name === routeNav.value
 }
 
-// Menu xổ xuống "Từ vựng": 'desktop' | 'mobile' | null
+// "Vocabulary" dropdown: 'desktop' | 'mobile' | null
 const openMenu = ref(null)
 const desktopMenu = ref(null)
 const mobileMenu = ref(null)
@@ -45,7 +45,7 @@ function toggle(where) {
 }
 
 function onDocumentClick(e) {
-  // ref đặt trong v-for nên là mảng
+  // refs inside v-for are arrays
   const refValue = openMenu.value === 'desktop' ? desktopMenu.value : mobileMenu.value
   const root = Array.isArray(refValue) ? refValue[0] : refValue
   if (root && !root.contains(e.target)) openMenu.value = null
@@ -63,7 +63,7 @@ watch(openMenu, (value) => {
     document.removeEventListener('keydown', onKeydown)
   }
 })
-// Chuyển trang thì đóng menu
+// Close the menu on navigation
 watch(() => route.fullPath, () => { openMenu.value = null })
 
 onBeforeUnmount(() => {
@@ -72,7 +72,7 @@ onBeforeUnmount(() => {
 })
 
 onMounted(() => {
-  // Tải lại trang thì store chưa có user: lấy lại từ /users/me (401 sẽ tự chuyển về /login)
+  // After a page reload the store has no user yet: fetch it from /users/me (a 401 redirects to /login)
   if (!auth.user) {
     auth.fetchMe().catch(() => {})
   }
@@ -90,7 +90,7 @@ onMounted(() => {
           <AppLogo />
         </RouterLink>
 
-        <!-- Menu giữa (desktop) -->
+        <!-- Centre menu (desktop) -->
         <nav
           class="hidden items-center gap-1 md:flex"
           :aria-label="t.nav.label"
@@ -99,7 +99,7 @@ onMounted(() => {
             v-for="item in navItems"
             :key="item.key"
           >
-            <!-- Nhóm có menu xổ xuống -->
+            <!-- Group with a dropdown -->
             <div
               v-if="item.children"
               ref="desktopMenu"
@@ -183,7 +183,7 @@ onMounted(() => {
           v-for="item in navItems"
           :key="item.key"
         >
-          <!-- Nhóm "Từ vựng": bấm để bật danh sách phía trên thanh menu -->
+          <!-- "Vocabulary" group: tap to open the list above the menu bar -->
           <div
             v-if="item.children"
             ref="mobileMenu"

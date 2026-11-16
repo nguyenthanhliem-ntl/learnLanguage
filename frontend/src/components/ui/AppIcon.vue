@@ -1,5 +1,5 @@
 <script setup>
-// Bộ icon dạng nét (24x24), path theo phong cách Heroicons outline
+// Outline icon set (24x24), paths in the Heroicons outline style
 defineProps({
   name: { type: String, required: true },
 })

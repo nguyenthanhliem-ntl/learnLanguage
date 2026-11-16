@@ -2,7 +2,7 @@
 import SectionHeading from './SectionHeading.vue'
 import t from '@/locales/vi'
 
-// Chỉ dùng số liệu thật của sản phẩm, không bịa số người dùng (CLAUDE.md §8.3)
+// Only real product figures, never made-up user counts (CLAUDE.md §8.3)
 const s = t.landing.stats
 const colors = ['bg-stat-teal', 'bg-stat-violet', 'bg-stat-pink', 'bg-stat-blue']
 </script>

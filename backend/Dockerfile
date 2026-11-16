@@ -1,7 +1,7 @@
-# Backend VocabMaster: build bằng Maven, chạy bằng JRE 21 (đa kiến trúc: chạy được trên amd64 và arm64/Ampere)
+# VocabMaster backend: built with Maven, runs on JRE 21 (multi-arch: works on amd64 and arm64/Ampere)
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
-# Tải dependency trước để tận dụng cache khi chỉ sửa code
+# Download dependencies first to reuse the layer cache when only the code changes
 COPY pom.xml .
 RUN mvn -B -q dependency:go-offline
 COPY src src

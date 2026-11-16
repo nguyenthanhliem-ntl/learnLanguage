@@ -10,12 +10,12 @@ import org.springframework.data.repository.query.Param;
 import com.vocab.library.entity.LibraryWord;
 
 /**
- * Kho từ vựng theo cấp độ. Từ của một cấp độ được chép dần sang WORDS của user (kèm LIBRARY_ID) khi học,
- * nên phần ôn tập, kho từ và thống kê dùng chung dữ liệu như từ user tự thêm.
+ * Vocabulary by level. A level's words are copied into the user's WORDS (with LIBRARY_ID) as they are learned,
+ * so review, the word bank and statistics share the same data as self-added words.
  */
 public interface LibraryRepository extends Repository<LibraryWord, Long> {
 
-    /** Mục từ của cấp độ chưa có trong kho user (theo LIBRARY_ID hoặc trùng cả 4 cột như UX_WORDS_USER_ENTRY). */
+    /** Level entries not yet in the user's bank (by LIBRARY_ID, or identical in all 4 columns like UX_WORDS_USER_ENTRY). */
     String NOT_IN_BANK = """
             v.LEVEL_CODE = :level
             and not exists (
@@ -28,7 +28,7 @@ public interface LibraryRepository extends Repository<LibraryWord, Long> {
                            and lower(trim(w.MEANING)) = lower(trim(v.MEANING)))))
             """;
 
-    /** Mỗi cấp độ: [LEVEL_CODE, tổng số từ, số từ đã vào kho user, số từ user đã học]. */
+    /** Per level: [LEVEL_CODE, total words, words in the user's bank, words the user has learned]. */
     @Query(value = """
             select v.LEVEL_CODE, count(*), count(w.ID),
                    count(case when p.STATUS is not null and p.STATUS <> 'NEW' then 1 end)
@@ -40,7 +40,7 @@ public interface LibraryRepository extends Repository<LibraryWord, Long> {
             """, nativeQuery = true)
     List<Object[]> summarizeLevels(@Param("userId") Long userId);
 
-    /** Toàn bộ kho của user (từ tự thêm + từ chép từ các cấp độ): [tổng số từ, số từ đã học]. */
+    /** The user's whole bank (self-added + copied from levels): [total words, learned words]. */
     @Query(value = """
             select count(*), count(case when p.STATUS is not null and p.STATUS <> 'NEW' then 1 end)
             from WORDS w
@@ -54,7 +54,7 @@ public interface LibraryRepository extends Repository<LibraryWord, Long> {
     @Query(value = "select count(*) from VOCAB_LIBRARY v where " + NOT_IN_BANK, nativeQuery = true)
     long countNotInBank(@Param("userId") Long userId, @Param("level") String level);
 
-    /** Chép ngẫu nhiên tối đa {@code limit} từ của cấp độ (chưa có trong kho) sang kho user. */
+    /** Copies up to {@code limit} random words of the level (not yet in the bank) into the user's bank. */
     @Modifying
     @Query(value = """
             insert into WORDS (USER_ID, WORD, PART_OF_SPEECH, PHONETIC, MEANING, LIBRARY_ID, CREATED_AT, UPDATED_AT)

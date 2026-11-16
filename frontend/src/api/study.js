@@ -1,14 +1,14 @@
 import http from './http'
 
 export const studyApi = {
-  // Không truyền limit: lấy phần còn thiếu của mục tiêu hôm nay. Có limit: "Học thêm".
+  // Without limit: what is left of today's goal. With limit: "Learn more".
   getNew: (limit) =>
     http.get('/study/new', { params: { limit: limit || undefined } }).then((res) => res.data),
 
   remember: (wordId) => http.post(`/study/new/${wordId}/remember`).then((res) => res.data),
 
-  // Một lượt ôn 20–30 từ. exclude: từ đã ôn trong phiên; ids: ôn đúng các từ này.
-  // Gửi danh sách dạng "1,2,3" để Spring đọc được thành List<Long>.
+  // One review round of 20–30 words. exclude: words reviewed this session; ids: review exactly these words.
+  // Send lists as "1,2,3" so Spring can read them as List<Long>.
   getReview: ({ ids = [], exclude = [] } = {}) =>
     http.get('/study/review', {
       params: {

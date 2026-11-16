@@ -9,7 +9,7 @@ import t from '@/locales/vi'
 const route = useRoute()
 const router = useRouter()
 
-// Tab lưu trên URL (?tab=excel) để tải lại trang vẫn đúng tab
+// The tab is kept in the URL (?tab=excel) so a reload keeps the right tab
 const tabs = [
   { key: 'manual', label: t.addWord.tabManual, icon: 'pencil' },
   { key: 'excel', label: t.addWord.tabExcel, icon: 'document' },
@@ -54,7 +54,7 @@ function select(key) {
       </button>
     </div>
 
-    <!-- v-show để giữ dữ liệu đang nhập khi đổi tab -->
+    <!-- v-show keeps the entered data when switching tabs -->
     <div
       v-show="active === 'manual'"
       class="max-w-2xl"

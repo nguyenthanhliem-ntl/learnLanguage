@@ -5,7 +5,7 @@ import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Endpoint đơn giản để frontend / người dùng kiểm tra backend đã chạy. */
+/** Simple endpoint for the frontend / users to check that the backend is running. */
 @RestController
 public class HealthController {
 

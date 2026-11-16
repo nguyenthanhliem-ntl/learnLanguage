@@ -8,7 +8,7 @@ import './assets/main.css'
 
 const app = createApp(App)
 app.use(createPinia())
-useThemeStore() // áp dụng giao diện Sáng/Tối đã lưu
+useThemeStore() // apply the saved Light/Dark theme
 app.directive('reveal', vReveal)
 app.use(router)
 app.mount('#app')

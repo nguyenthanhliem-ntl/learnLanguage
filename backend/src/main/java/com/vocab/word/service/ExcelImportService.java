@@ -25,8 +25,8 @@ import com.vocab.word.dto.ImportResult.RowError;
 import com.vocab.word.dto.NewWord;
 
 /**
- * Import từ vựng từ file Excel: A = Từ mới, B = Loại từ, C = Phiên âm, D = Ngữ nghĩa (bắt buộc cả 4),
- * dòng 1 là tiêu đề. Chạy trong 1 transaction; kiểm tra trùng (giống cả 4 cột) qua {@link WordService},
+ * Imports vocabulary from an Excel file: A = Word, B = Part of speech, C = Phonetic, D = Meaning (all 4 required),
+ * row 1 is the header. Runs in one transaction; duplicates (identical in all 4 columns) are checked via {@link WordService},
  * insert theo batch.
  */
 @Service
@@ -54,7 +54,7 @@ public class ExcelImportService {
         try (Workbook workbook = open(file)) {
             return importWorkbook(userId, workbook);
         } catch (IOException e) {
-            // Lỗi khi đóng workbook, dữ liệu đã xử lý xong
+            // Error while closing the workbook, the data has already been processed
             throw new UncheckedIOException(e);
         }
     }
@@ -63,12 +63,12 @@ public class ExcelImportService {
         try (InputStream in = file.getInputStream()) {
             return WorkbookFactory.create(in);
         } catch (Exception e) {
-            // File đổi đuôi, file hỏng, file có mật khẩu...
+            // Renamed extension, corrupted file, password-protected file...
             throw ApiException.badRequest("INVALID_FILE", "Không đọc được file. Vui lòng dùng file Excel (.xlsx, .xls) hợp lệ");
         }
     }
 
-    /** Xử lý workbook đã mở. Tách riêng để test không cần MultipartFile. */
+    /** Processes an already opened workbook. Kept separate so tests do not need a MultipartFile. */
     @Transactional
     public ImportResult importWorkbook(Long userId, Workbook workbook) {
         if (workbook.getNumberOfSheets() == 0) {
@@ -89,7 +89,7 @@ public class ExcelImportService {
         List<RowError> errors = new ArrayList<>();
         int duplicates = 0;
 
-        // Dòng 0 là tiêu đề; số dòng báo lỗi tính theo Excel (bắt đầu từ 1)
+        // Row 0 is the header; reported row numbers follow Excel (starting at 1)
         for (int r = 1; r <= sheet.getLastRowNum(); r++) {
             Row row = sheet.getRow(r);
             int excelRow = r + 1;
@@ -100,7 +100,7 @@ public class ExcelImportService {
                     WordService.clean(read(row, COL_MEANING, formatter, evaluator)));
 
             if (w.word().isEmpty() && w.partOfSpeech().isEmpty() && w.phonetic().isEmpty() && w.meaning().isEmpty()) {
-                continue; // dòng trống
+                continue; // blank row
             }
             String error = validate(w);
             if (error != null) {
@@ -108,7 +108,7 @@ public class ExcelImportService {
                 continue;
             }
             String key = WordService.entryKey(w);
-            // Giống cả 4 cột: lặp trong file thì chỉ lấy dòng đầu tiên, có sẵn trong kho thì bỏ qua
+            // Identical in all 4 columns: repeated in the file keeps only the first row, already in the bank is skipped
             if (!seenInFile.add(key) || existing.contains(key)) {
                 duplicates++;
                 if (duplicateWords.size() < MAX_DUPLICATE_WORDS_SHOWN) {
@@ -123,7 +123,7 @@ public class ExcelImportService {
         return new ImportResult(toInsert.size(), duplicates, duplicateWords, errors);
     }
 
-    /** Bắt buộc đủ 4 cột và không quá độ dài cho phép. Trả về lý do lỗi hoặc null nếu hợp lệ. */
+    /** All 4 columns are required and must not exceed the allowed length. Returns the error reason, or null if valid. */
     private static String validate(NewWord w) {
         List<String> missing = new ArrayList<>();
         if (w.word().isEmpty()) {

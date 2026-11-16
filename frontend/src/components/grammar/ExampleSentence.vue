@@ -1,7 +1,7 @@
 <script setup>
 import SpeakButton from '@/components/ui/SpeakButton.vue'
 
-// Một câu ví dụ: tiếng Anh + nút loa, nghĩa tiếng Việt bên dưới
+// One example sentence: English + speaker button, Vietnamese meaning below
 defineProps({
   example: { type: Object, required: true }, // { en, vi }
 })

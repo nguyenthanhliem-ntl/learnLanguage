@@ -5,7 +5,7 @@ import AppLogo from '@/components/ui/AppLogo.vue'
 
 <template>
   <div class="relative min-h-screen overflow-hidden bg-canvas">
-    <!-- Lớp blur xanh mờ trang trí phía sau -->
+    <!-- Decorative blurred blue layer in the background -->
     <div
       class="pointer-events-none absolute -top-40 left-1/2 h-96 w-[48rem] max-w-[150vw] -translate-x-1/2 rounded-full bg-primary-600/10 blur-3xl"
       aria-hidden="true"

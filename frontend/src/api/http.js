@@ -4,20 +4,20 @@ import { getToken } from '@/stores/tokenStorage'
 import { useAuthStore } from '@/stores/auth'
 import { useLoadingStore } from '@/stores/loading'
 
-// Axios instance dùng chung cho mọi module API
+// Shared Axios instance for every API module
 const http = axios.create({
   baseURL: '/api',
   timeout: 30000,
 })
 
-// Request gửi kèm { silent: true } sẽ không bật loading bar (vd kiểm tra trùng khi đang gõ)
+// Requests sent with { silent: true } do not show the loading bar (e.g. duplicate checks while typing)
 function trackDone(config) {
   if (config && !config.silent) {
     useLoadingStore().done()
   }
 }
 
-// Tự gắn JWT vào mọi request và bật loading bar
+// Attach the JWT to every request and show the loading bar
 http.interceptors.request.use((config) => {
   const token = getToken()
   if (token) {
@@ -29,8 +29,8 @@ http.interceptors.request.use((config) => {
   return config
 })
 
-// 401: xóa token và chuyển về /login.
-// Bỏ qua /auth/* vì sai mật khẩu khi đăng nhập cũng trả 401, form tự hiển thị lỗi.
+// 401: clear the token and go to /login.
+// Skip /auth/* because a wrong password on login also returns 401 and the form shows the error itself.
 http.interceptors.response.use(
   (response) => {
     trackDone(response.config)

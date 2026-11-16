@@ -5,8 +5,8 @@ import AppIcon from '@/components/ui/AppIcon.vue'
 import SpeakButton from '@/components/ui/SpeakButton.vue'
 import t from '@/locales/vi'
 
-// Thẻ lật 3D: mặt trước chỉ có từ tiếng Anh, bấm biểu tượng xoay để lật xem loại từ, phiên âm, nghĩa.
-// Mỗi từ mới nên render một instance mới (đổi :key) để thẻ luôn bắt đầu ở mặt trước.
+// 3D flip card: the front only shows the English word; the rotate icon flips it to show part of speech, phonetic and meaning.
+// Render a new instance for each new word (change :key) so the card always starts on the front.
 const props = defineProps({
   word: { type: Object, required: true },
   autoSpeak: { type: Boolean, default: true },
@@ -26,7 +26,7 @@ onMounted(() => {
       class="preserve-3d relative h-80 w-full transition-transform duration-500 sm:h-96"
       :class="flipped ? 'rotate-y-180' : ''"
     >
-      <!-- Mặt trước: chỉ từ tiếng Anh -->
+      <!-- Front: English word only -->
       <div
         class="backface-hidden absolute inset-0 flex flex-col items-center justify-center rounded-3xl border border-border bg-surface p-6 text-center shadow-xl shadow-primary-600/10"
         :aria-hidden="flipped"
@@ -53,7 +53,7 @@ onMounted(() => {
         </button>
       </div>
 
-      <!-- Mặt sau: loại từ, phiên âm + nút loa, nghĩa -->
+      <!-- Back: part of speech, phonetic + speaker button, meaning -->
       <div
         class="backface-hidden rotate-y-180 absolute inset-0 flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-hero-start to-hero-end px-6 pb-20 pt-6 text-center text-white shadow-xl shadow-primary-600/10"
         :aria-hidden="!flipped"
@@ -105,7 +105,7 @@ onMounted(() => {
     >
       {{ t.learn.flipHint }}
     </p>
-    <!-- Tránh lệch bố cục khi gợi ý ẩn -->
+    <!-- Avoid layout shift when the hint is hidden -->
     <p
       v-else
       class="mt-3 text-center text-xs text-transparent"

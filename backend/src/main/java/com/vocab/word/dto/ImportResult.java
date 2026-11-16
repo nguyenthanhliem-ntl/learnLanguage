@@ -3,12 +3,12 @@ package com.vocab.word.dto;
 import java.util.List;
 
 /**
- * Kết quả import Excel.
+ * Excel import result.
  *
- * @param added          số từ thêm mới
- * @param duplicates     số từ bị bỏ qua vì đã có trong kho hoặc lặp lại trong file
- * @param duplicateWords một phần danh sách từ trùng (tối đa 50) để hiển thị
- * @param errors         các dòng lỗi (số dòng theo Excel + lý do)
+ * @param added          words added
+ * @param duplicates     words skipped because they are already in the bank or repeated in the file
+ * @param duplicateWords part of the duplicate words (up to 50) for display
+ * @param errors         rows with errors (Excel row number + reason)
  */
 public record ImportResult(int added, int duplicates, List<String> duplicateWords, List<RowError> errors) {
 

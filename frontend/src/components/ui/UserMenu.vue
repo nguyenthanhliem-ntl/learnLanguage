@@ -6,7 +6,7 @@ import { useThemeStore } from '@/stores/theme'
 import AppIcon from './AppIcon.vue'
 import t from '@/locales/vi'
 
-// Menu người dùng ở góc phải header: Tài khoản, Giao diện Sáng/Tối, Đăng xuất
+// User menu at the right of the header: Account, Light/Dark theme, Sign out
 const auth = useAuthStore()
 const themeStore = useThemeStore()
 const router = useRouter()
@@ -34,7 +34,7 @@ watch(open, (value) => {
     document.removeEventListener('keydown', onKeydown)
   }
 })
-// Chuyển trang thì đóng menu
+// Close the menu on navigation
 watch(() => route.fullPath, () => { open.value = false })
 
 onBeforeUnmount(() => {
@@ -116,7 +116,7 @@ const themes = [
             {{ t.userMenu.account }}
           </button>
 
-          <!-- Giao diện Sáng / Tối -->
+          <!-- Light / Dark theme -->
           <div class="px-3 py-2.5">
             <p class="mb-2 text-xs font-medium text-ink-500">
               {{ t.userMenu.theme }}

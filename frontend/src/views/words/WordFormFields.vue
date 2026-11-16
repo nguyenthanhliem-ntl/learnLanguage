@@ -6,7 +6,7 @@ import SpeakButton from '@/components/ui/SpeakButton.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import t from '@/locales/vi'
 
-// 4 ô nhập dùng chung cho form Thêm từ và popup Sửa từ
+// 4 input fields shared by the Add word form and the Edit word dialog
 const form = defineModel({ type: Object, required: true }) // { word, partOfSpeech, phonetic, meaning }
 
 defineProps({
@@ -26,7 +26,7 @@ defineExpose({
 
 <template>
   <div class="space-y-5">
-    <!-- Từ mới + nút loa -->
+    <!-- Word + speaker button -->
     <div>
       <div class="flex items-start gap-3">
         <div class="min-w-0 flex-1">
@@ -49,7 +49,7 @@ defineExpose({
         />
       </div>
 
-      <!-- Các nghĩa đã có của từ này -->
+      <!-- Existing meanings of this word -->
       <div
         v-if="sameWord.length"
         class="mt-2 rounded-xl border px-4 py-3 text-sm"
@@ -98,7 +98,7 @@ defineExpose({
         mono
       />
     </div>
-    <!-- Gợi ý loại từ thường gặp, vẫn gõ tự do được -->
+    <!-- Common part-of-speech suggestions, free text still allowed -->
     <datalist :id="posListId">
       <option
         v-for="p in t.wordForm.partOfSpeechSuggestions"

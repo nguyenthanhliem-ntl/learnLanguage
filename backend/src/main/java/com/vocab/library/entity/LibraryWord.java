@@ -5,7 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/** Một mục từ trong kho cấp độ dùng chung (chỉ đọc, dữ liệu nạp bằng Flyway). */
+/** One entry in the shared level bank (read-only, data loaded by Flyway). */
 @Entity
 @Table(name = "VOCAB_LIBRARY")
 public class LibraryWord {

@@ -2,12 +2,12 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 /**
- * Đếm số tác vụ đang tải (request API, chuyển trang).
- * Loading bar trên đầu trang hiện khi còn ít nhất 1 tác vụ chưa xong.
+ * Counts loading tasks (API requests, navigation).
+ * The loading bar at the top is shown while at least one task is unfinished.
  */
 export const useLoadingStore = defineStore('loading', () => {
   const pending = ref(0)
-  // Chuyển trang dùng cờ riêng: redirect trong guard có thể chạy beforeEach nhiều lần
+  // Navigation uses its own flag: redirects in guards can run beforeEach several times
   const routing = ref(false)
   const active = computed(() => pending.value > 0 || routing.value)
 

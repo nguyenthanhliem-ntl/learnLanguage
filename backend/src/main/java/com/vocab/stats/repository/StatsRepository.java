@@ -11,17 +11,17 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * Truy vấn thống kê gom nhóm theo ngày (TRUNC trên Oracle), viết bằng JDBC cho gọn.
- * Mọi truy vấn đều lọc theo USER_ID.
+ * Statistics queries grouped by day (TRUNC on Oracle), written with JDBC for brevity.
+ * Every query is filtered by USER_ID.
  */
 @Repository
 public class StatsRepository {
 
-    /** Số hoạt động theo ngày và loại. */
+    /** Activity count per day and type. */
     public record DailyCount(LocalDate date, String activityType, long count) {
     }
 
-    /** Số từ theo trạng thái tiến độ. */
+    /** Word count per progress status. */
     public record StatusCount(String status, long count) {
     }
 
@@ -43,7 +43,7 @@ public class StatsRepository {
                 userId, Timestamp.valueOf(from));
     }
 
-    /** Các ngày có hoạt động, dùng tính streak. */
+    /** Days with activity, used to compute the streak. */
     public Set<LocalDate> studyDays(Long userId, LocalDateTime from) {
         return new HashSet<>(jdbc.query("""
                 SELECT DISTINCT TRUNC(CREATED_AT) AS DAY

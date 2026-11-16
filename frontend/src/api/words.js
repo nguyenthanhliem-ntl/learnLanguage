@@ -4,7 +4,7 @@ export const wordsApi = {
   list: ({ q, page = 0, size = 20 } = {}) =>
     http.get('/words', { params: { q: q || undefined, page, size } }).then((res) => res.data),
 
-  // Gọi liên tục khi đang gõ nên không bật loading bar.
+  // Called repeatedly while typing, so the loading bar is not shown.
   // params: { word, partOfSpeech, phonetic, meaning, excludeId }
   check: (params, signal) =>
     http.get('/words/check', { params, silent: true, signal }).then((res) => res.data),

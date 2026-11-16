@@ -17,7 +17,7 @@ import com.vocab.library.repository.LibraryRepository;
 import com.vocab.user.dto.UserResponse;
 import com.vocab.user.service.UserService;
 
-/** Kho từ vựng A1–C2: tiến độ từng cấp độ và chọn cấp độ đang học. */
+/** A1–C2 vocabulary bank: progress per level and choosing the level to study. */
 @Service
 public class LibraryService {
 
@@ -34,7 +34,7 @@ public class LibraryService {
         Map<String, LevelSummary> byLevel = libraryRepository.summarizeLevels(userId).stream()
                 .map(r -> new LevelSummary((String) r[0], toLong(r[1]), toLong(r[3])))
                 .collect(Collectors.toMap(LevelSummary::level, Function.identity()));
-        // Cấp độ chưa có dữ liệu vẫn hiện với 0 từ
+        // Levels without data are still listed with 0 words
         List<LevelSummary> levels = Arrays.stream(CefrLevel.values())
                 .map(l -> byLevel.getOrDefault(l.name(), new LevelSummary(l.name(), 0, 0)))
                 .toList();
@@ -45,7 +45,7 @@ public class LibraryService {
         return new LibraryOverview(userService.getMe(userId).studyLevel(), myBank, levels);
     }
 
-    /** Đổi cấp độ đang học; tiến độ các cấp độ khác vẫn giữ nguyên. {@code level} null = kho tự thêm. */
+    /** Changes the level being studied; progress in other levels is kept. {@code level} null = self-added bank. */
     @Transactional
     public UserResponse changeStudyLevel(Long userId, String level) {
         if (level == null || level.isBlank()) {

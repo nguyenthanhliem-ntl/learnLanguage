@@ -3,12 +3,12 @@ import { wordsApi } from '@/api/words'
 import { useDebounceFn } from './useDebounce'
 
 /**
- * Kiểm tra trùng khi đang gõ (debounce 300ms).
- * - {@code duplicate}: true nếu kho đã có mục giống hệt cả 4 cột (không cho lưu)
- * - {@code sameWord}: các nghĩa đã có của cùng từ này (để tham khảo)
+ * Duplicate check while typing (300ms debounce).
+ * - {@code duplicate}: true if the bank already has an entry identical in all 4 columns (saving is blocked)
+ * - {@code sameWord}: existing meanings of the same word (for reference)
  *
- * @param formGetter trả về { word, partOfSpeech, phonetic, meaning }
- * @param excludeId  id của từ đang sửa (bỏ qua chính nó)
+ * @param formGetter returns { word, partOfSpeech, phonetic, meaning }
+ * @param excludeId  id of the word being edited (skips itself)
  */
 export function useWordDuplicateCheck(formGetter, excludeId = () => null) {
   const checking = ref(false)
@@ -26,7 +26,7 @@ export function useWordDuplicateCheck(formGetter, excludeId = () => null) {
         sameWord.value = res.sameWord
       }
     } catch {
-      // Bị hủy do gõ tiếp hoặc lỗi mạng: bỏ qua, backend vẫn kiểm tra lại khi lưu
+      // Cancelled by further typing or a network error: ignore, the backend checks again on save
     } finally {
       if (controller === own) checking.value = false
     }
@@ -47,7 +47,7 @@ export function useWordDuplicateCheck(formGetter, excludeId = () => null) {
     sameWord.value = []
   }
 
-  /** Kiểm tra ngay, không chờ debounce (vd khi lưu bị báo trùng). */
+  /** Checks immediately without waiting for the debounce (e.g. when saving reports a duplicate). */
   function checkNow() {
     const form = formGetter()
     if (form.word?.trim()) {
@@ -58,7 +58,7 @@ export function useWordDuplicateCheck(formGetter, excludeId = () => null) {
 
   watch(formGetter, (form) => {
     cancelPending()
-    // Giữ danh sách nghĩa cũ trong lúc chờ để giao diện không bị giật
+    // Keep the previous meanings while waiting so the UI does not jump
     duplicate.value = false
     if (form.word?.trim()) {
       checking.value = true

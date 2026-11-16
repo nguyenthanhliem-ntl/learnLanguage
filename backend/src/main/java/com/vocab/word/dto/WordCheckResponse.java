@@ -3,10 +3,10 @@ package com.vocab.word.dto;
 import java.util.List;
 
 /**
- * Kết quả kiểm tra khi nhập tay.
+ * Result of the duplicate check while typing.
  *
- * @param exists   true nếu đã có từ giống hệt cả 4 cột (không cho lưu)
- * @param sameWord các nghĩa đã có của cùng từ này trong kho (để người dùng tham khảo)
+ * @param exists   true if a word identical in all 4 columns already exists (saving is blocked)
+ * @param sameWord existing meanings of the same word in the bank (for reference)
  */
 public record WordCheckResponse(boolean exists, List<WordResponse> sameWord) {
 }

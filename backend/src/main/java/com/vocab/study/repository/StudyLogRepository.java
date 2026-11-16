@@ -9,7 +9,7 @@ import com.vocab.study.entity.StudyLog;
 
 public interface StudyLogRepository extends JpaRepository<StudyLog, Long> {
 
-    /** Đếm hoạt động trong khoảng [from, to), vd số từ mới đã học hôm nay. */
+    /** Counts activities in [from, to), e.g. new words learned today. */
     long countByUserIdAndActivityTypeAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
             Long userId, ActivityType activityType, LocalDateTime from, LocalDateTime to);
 }

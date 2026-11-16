@@ -1,6 +1,6 @@
 import { onBeforeUnmount, ref } from 'vue'
 
-/** Thông báo ngắn tự ẩn sau {@code ms} mili-giây. */
+/** Short message that hides itself after {@code ms} milliseconds. */
 export function useFlash(ms = 3000) {
   const message = ref('')
   let timer = null

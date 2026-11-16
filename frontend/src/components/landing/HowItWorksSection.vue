@@ -4,7 +4,7 @@ import CheckList from './CheckList.vue'
 import PracticeDemo from './PracticeDemo.vue'
 import t from '@/locales/vi'
 
-// 3 khối giới thiệu 2 cột, đổi bên xen kẽ (CLAUDE.md §8.2)
+// 3 two-column intro blocks, alternating sides (CLAUDE.md §8.2)
 const a = t.landing.how.addWords
 const p = t.landing.how.practice
 const d = t.landing.how.dashboard
@@ -17,7 +17,7 @@ const pill = 'inline-flex items-center rounded-full bg-primary-50 px-3 py-1 text
     class="bg-canvas py-20 md:py-28"
   >
     <div class="mx-auto max-w-6xl space-y-24 px-4 md:space-y-32">
-      <!-- Thêm từ nhanh: chữ trái, mock phải -->
+      <!-- Quick word entry: text left, mock-up right -->
       <div class="grid items-center gap-10 md:grid-cols-2 md:gap-16">
         <div v-reveal>
           <span :class="pill">{{ a.badge }}</span>
@@ -121,7 +121,7 @@ const pill = 'inline-flex items-center rounded-full bg-primary-50 px-3 py-1 text
         </div>
       </div>
 
-      <!-- Luyện tập: mock trái (thử được), chữ phải -->
+      <!-- Practice: mock-up left (interactive), text right -->
       <div class="grid items-center gap-10 md:grid-cols-2 md:gap-16">
         <div
           v-reveal
@@ -147,7 +147,7 @@ const pill = 'inline-flex items-center rounded-full bg-primary-50 px-3 py-1 text
         </div>
       </div>
 
-      <!-- Dashboard và streak: chữ trái, mock phải -->
+      <!-- Dashboard and streak: text left, mock-up right -->
       <div class="grid items-center gap-10 md:grid-cols-2 md:gap-16">
         <div v-reveal>
           <span :class="pill">{{ d.badge }}</span>

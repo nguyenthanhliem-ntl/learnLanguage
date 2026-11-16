@@ -6,15 +6,15 @@ import AlertBox from './AlertBox.vue'
 import AppIcon from './AppIcon.vue'
 import t from '@/locales/vi'
 
-// Tần suất học theo tháng: mỗi ngày một ô nhỏ trên 1 hàng, số ngày ghi phía trên ô.
-// Màu một sắc, nhạt -> đậm theo số câu đã ôn trong ngày (từ cũ lẫn từ mới); hover ô để xem chi tiết (title).
-// Xem được 12 tháng gần nhất, mặc định tháng hiện tại.
-// variant "hero": đặt trong khối gradient (card "Hôm nay") nên không có khung riêng và dùng màu trắng.
+// Monthly study frequency: one small cell per day in a single row, day number above each cell.
+// Single colour, light -> dark by review questions answered that day (old and new words); hover a cell for details (title).
+// Covers the last 12 months, the current month by default.
+// variant "hero": sits inside the gradient block ("Today" card), so it has no frame of its own and uses white.
 const props = defineProps({
   variant: { type: String, default: 'card' }, // card | hero
 })
 const MONTHS_BACK = 12
-// Ngưỡng số câu đã ôn trong ngày cho các mức màu: 0 | 1–199 | 200–499 | 500–799 | 800–999 | 1000+
+// Thresholds of daily review questions per colour level: 0 | 1–199 | 200–499 | 500–799 | 800–999 | 1000+
 const LEVELS = [1, 200, 500, 800, 1000]
 const THEMES = {
   card: {
@@ -55,17 +55,17 @@ const now = new Date()
 const months = Array.from({ length: MONTHS_BACK }, (_, i) => {
   const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
   return { key: toKey(d.getFullYear(), d.getMonth() + 1), year: d.getFullYear(), month: d.getMonth() + 1 }
-}) // [tháng hiện tại, tháng trước, ...]
+}) // [current month, previous month, ...]
 const todayIso = `${toKey(now.getFullYear(), now.getMonth() + 1)}-${pad(now.getDate())}`
 
-const index = ref(0) // 0 = tháng hiện tại
+const index = ref(0) // 0 = current month
 const current = computed(() => months[index.value])
 const days = ref([])
 const loading = ref(true)
 const error = ref('')
-const strip = ref(null) // khung cuộn ngang của hàng ngày
+const strip = ref(null) // horizontal scroll container of the day row
 
-// Màn hẹp: cuộn hàng ngày sao cho hôm nay nằm giữa khung
+// Narrow screens: scroll the day row so today is centred
 async function scrollToToday() {
   await nextTick()
   const el = strip.value
@@ -106,7 +106,7 @@ const formatDay = (iso) => {
   return `${d}/${m}/${y}`
 }
 
-// Mỗi ngày trong tháng một ô: ngày đã qua có dữ liệu, ngày chưa tới để trống
+// One cell per day of the month: past days have data, future days stay empty
 const cells = computed(() => {
   const { year, month } = current.value
   const daysInMonth = new Date(year, month, 0).getDate()
@@ -130,7 +130,7 @@ const cells = computed(() => {
   return result
 })
 
-// Số từ mới đã học trong tháng
+// New words learned in the month
 const learnedInMonth = computed(() => days.value.reduce((s, d) => s + d.learned, 0))
 
 onMounted(load)
@@ -152,7 +152,7 @@ onMounted(load)
         </p>
       </div>
 
-      <!-- Chọn tháng: 12 tháng gần nhất -->
+      <!-- Month picker: last 12 months -->
       <div class="flex items-center gap-1">
         <button
           type="button"
@@ -212,7 +212,7 @@ onMounted(load)
       v-else
       class="mt-4"
     >
-      <!-- Các ngày trong tháng trên 1 hàng: số ngày ở trên, ô màu ở dưới; màn hẹp thì cuộn ngang trong khung -->
+      <!-- Days of the month in one row: day number on top, coloured cell below; narrow screens scroll horizontally inside the frame -->
       <div
         ref="strip"
         class="relative -mx-1 overflow-x-auto px-1 py-1"
@@ -247,7 +247,7 @@ onMounted(load)
         </div>
       </div>
 
-      <!-- Chú thích mức màu -->
+      <!-- Colour level legend -->
       <div
         class="mt-3 flex items-center justify-end gap-1.5 text-xs"
         :class="theme.legend"

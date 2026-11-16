@@ -1,11 +1,11 @@
 package com.vocab.study.entity;
 
-/** Loại hoạt động ghi vào STUDY_LOG. */
+/** Activity type stored in STUDY_LOG. */
 public enum ActivityType {
-    /** Học từ mới (bấm "Đã nhớ"). */
+    /** Learning a new word (pressing "Remembered"). */
     LEARN,
-    /** Ôn tập dạng trắc nghiệm. */
+    /** Multiple-choice review. */
     QUIZ,
-    /** Ôn tập dạng nghe – gõ. */
+    /** Listen-and-type review. */
     LISTEN
 }

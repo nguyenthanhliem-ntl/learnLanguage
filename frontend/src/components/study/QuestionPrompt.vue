@@ -6,17 +6,17 @@ import PartOfSpeech from '@/components/ui/PartOfSpeech.vue'
 import SpeakButton from '@/components/ui/SpeakButton.vue'
 import t from '@/locales/vi'
 
-// Phần gợi ý của câu ôn: LISTEN (phát âm), MEANING (nghĩa + loại từ) hoặc PHONETIC (loại từ + phiên âm + loa, nghĩa bên dưới)
+// Hint part of a review question: LISTEN (pronunciation), MEANING (meaning + part of speech) or PHONETIC (part of speech + phonetic + speaker, meaning below)
 const props = defineProps({
   question: { type: Object, required: true }, // { word, prompt, answer }
 })
 
 const { supported, speaking, speak, speakTap } = useSpeech()
 const LISTEN_RATE = 0.85
-const listen = () => speakTap(props.question.word.word, { rate: LISTEN_RATE }) // bấm loa: lần chẵn đọc chậm
+const listen = () => speakTap(props.question.word.word, { rate: LISTEN_RATE }) // speaker press: every second press is slower
 
 onMounted(() => {
-  // Tự phát khi câu nghe hiện ra (không tính là lần bấm)
+  // Plays automatically when a listening question appears (not counted as a press)
   if (props.question.prompt === 'LISTEN') speak(props.question.word.word, { rate: LISTEN_RATE })
 })
 
@@ -29,7 +29,7 @@ defineExpose({ listen })
       {{ t.review.instructions[question.prompt][question.answer] }}
     </p>
 
-    <!-- Nghe phát âm -->
+    <!-- Listen to the pronunciation -->
     <template v-if="question.prompt === 'LISTEN'">
       <button
         type="button"
@@ -54,7 +54,7 @@ defineExpose({ listen })
       </p>
     </template>
 
-    <!-- Nghĩa + loại từ -->
+    <!-- Meaning + part of speech -->
     <template v-else-if="question.prompt === 'MEANING'">
       <PartOfSpeech
         :value="question.word.partOfSpeech"
@@ -65,7 +65,7 @@ defineExpose({ listen })
       </p>
     </template>
 
-    <!-- Loại từ + phiên âm + loa, nghĩa bên dưới -->
+    <!-- Part of speech + phonetic + speaker, meaning below -->
     <template v-else>
       <div class="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
         <span

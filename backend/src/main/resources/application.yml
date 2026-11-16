@@ -1,7 +1,7 @@
 spring:
   application:
     name: vocab-backend
-  # Đọc biến môi trường từ backend/.env nếu có (file này không commit)
+  # Load environment variables from backend/.env if present (this file is not committed)
   config:
     import: optional:file:.env[.properties]
 
@@ -14,11 +14,11 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: validate      # schema do Flyway quản lý, Hibernate chỉ kiểm tra
+      ddl-auto: validate      # schema is managed by Flyway, Hibernate only validates it
     properties:
       hibernate:
         jdbc:
-          batch_size: 50      # dùng cho import Excel theo batch
+          batch_size: 50      # used for batched Excel import
           time_zone: Asia/Ho_Chi_Minh
         order_inserts: true
 

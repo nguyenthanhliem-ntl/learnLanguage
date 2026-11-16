@@ -8,10 +8,10 @@ import QuestionPrompt from './QuestionPrompt.vue'
 import { normalizeAnswer } from '@/utils/answer'
 import t from '@/locales/vi'
 
-// Gõ từ tiếng Anh theo gợi ý (nghe, nghĩa hoặc phiên âm). Không phân biệt hoa/thường, bỏ khoảng trắng thừa.
-// Hàng nút giữ nguyên bố cục: Gợi ý · Kiểm tra · Tiếp tục →.
-// Bấm Kiểm tra: đúng hay sai đều hiện đầy đủ thông tin từ bên dưới; gõ sai thì giữ nguyên chữ đã gõ,
-// để trống thì điền luôn từ đúng vào ô nhập.
+// Type the English word from the hint (listen, meaning or phonetic). Case-insensitive, extra spaces ignored.
+// The button row keeps its layout: Hint · Check · Continue →.
+// Check: correct or wrong, the full word details are shown below; a wrong answer keeps what was typed,
+// an empty answer fills in the correct word.
 const props = defineProps({
   question: { type: Object, required: true }, // { word, prompt }
 })
@@ -19,21 +19,21 @@ const emit = defineEmits(['answered', 'next'])
 
 const answer = ref('')
 const showHint = ref(false)
-const result = ref(null) // null = chưa trả lời, true / false
-const typed = ref('') // câu người dùng đã gõ, để hiện "Bạn trả lời" khi sai
+const result = ref(null) // null = not answered yet, true / false
+const typed = ref('') // what the user typed, shown as "Your answer" when wrong
 const input = ref(null)
 
 const target = computed(() => props.question.word.word)
 
 const normalize = normalizeAnswer
 
-// Bấm Kiểm tra khi ô còn trống = chưa biết từ này, tính là trả lời sai
+// Checking with an empty input = the word is unknown, counted as wrong
 function check() {
   if (result.value !== null) return
   typed.value = answer.value.trim()
   result.value = typed.value !== '' && normalize(typed.value) === normalize(target.value)
-  // Để trống: điền từ đúng vào ô nhập. Gõ sai: giữ nguyên chữ đã gõ, đáp án chỉ hiện ở AnswerFeedback bên dưới
-  // (AnswerFeedback tự phát âm khi hiện ra)
+  // Empty: fill in the correct word. Wrong: keep what was typed, the answer only appears in AnswerFeedback below
+  // (AnswerFeedback pronounces the word when it appears)
   if (!result.value && typed.value === '') answer.value = target.value
   emit('answered', { correct: result.value, answer: typed.value })
 }
@@ -78,7 +78,7 @@ onMounted(async () => {
       {{ t.review.hintText(target.charAt(0), target.length) }}
     </p>
 
-    <!-- Hàng nút cố định: trái là Gợi ý + Kiểm tra/Kết quả, phải là Tiếp tục -->
+    <!-- Fixed button row: Hint + Check/Result on the left, Continue on the right -->
     <div class="flex flex-wrap items-center gap-2 sm:gap-3">
       <BaseButton
         variant="outline"
@@ -103,7 +103,7 @@ onMounted(async () => {
       />
     </div>
 
-    <!-- Đã trả lời: hiện đầy đủ thông tin của từ (đúng thì ReviewSession đã tự phát âm) -->
+    <!-- Answered: show the full word details (when correct, ReviewSession already pronounced it) -->
     <AnswerFeedback
       v-if="result !== null"
       :word="question.word"

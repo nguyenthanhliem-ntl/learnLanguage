@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/** Trả 401 dạng JSON {@link ApiError} thay vì trang lỗi mặc định của Spring Security. */
+/** Returns a JSON 401 {@link ApiError} instead of Spring Security's default error page. */
 @Component
 public class JsonAuthEntryPoint implements AuthenticationEntryPoint {
 

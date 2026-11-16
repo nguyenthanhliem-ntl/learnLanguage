@@ -3,7 +3,7 @@ import { ref, useId } from 'vue'
 import SectionHeading from './SectionHeading.vue'
 import t from '@/locales/vi'
 
-// Accordion: mở một mục, icon đổi +/− (CLAUDE.md §8.2)
+// Accordion: one item open at a time, icon switches +/− (CLAUDE.md §8.2)
 const f = t.landing.faq
 const openIndex = ref(-1)
 const baseId = useId()

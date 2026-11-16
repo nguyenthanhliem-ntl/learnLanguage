@@ -4,6 +4,6 @@ import java.time.LocalDate;
 
 import com.vocab.word.dto.WordStatus;
 
-/** Kết quả ghi nhận một câu trả lời: lịch ôn mới theo SM-2. */
+/** Result of recording an answer: the new SM-2 review schedule. */
 public record AnswerResponse(Long wordId, WordStatus status, int intervalDays, LocalDate nextReviewDate) {
 }

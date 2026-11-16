@@ -23,7 +23,7 @@ const { message: flashMessage, show: showFlash } = useFlash()
 
 const { checking, duplicate, sameWord, reset: resetCheck, checkNow } = useWordDuplicateCheck(() => ({ ...form }))
 
-// Bắt buộc đủ 4 ô
+// All 4 fields are required
 const filled = computed(() => Object.values(form).every((v) => v.trim() !== ''))
 const canSave = computed(() => filled.value && !duplicate.value && !saving.value)
 
@@ -41,7 +41,7 @@ async function save() {
     fields.value?.focus()
   } catch (e) {
     if (e.response?.status === 409) {
-      checkNow() // hiện các nghĩa đang lưu
+      checkNow() // show the meanings being saved
     } else {
       error.value = { message: getErrorMessage(e), details: getErrorDetails(e) }
     }
@@ -98,7 +98,7 @@ onMounted(() => fields.value?.focus())
       </div>
     </form>
 
-    <!-- Danh sách từ vừa thêm -->
+    <!-- Words just added -->
     <section v-if="recent.length">
       <div class="mb-3 flex items-center justify-between">
         <h2 class="font-semibold">

@@ -10,22 +10,22 @@ import TypeQuestion from '@/components/study/TypeQuestion.vue'
 import t from '@/locales/vi'
 
 /*
- * Một lượt ôn: lần lượt từng câu, mỗi câu chỉ tính lần trả lời đầu tiên.
- * Nút "Tiếp tục →" cố định bên phải: chưa trả lời thì là bỏ qua (không tính đúng sai, không đổi lịch ôn;
- * từ bỏ qua được hỏi lại một lần sau ít nhất 5 câu nếu lượt còn đủ dài), đã trả lời thì sang câu tiếp.
- * Trả lời đúng: tô xanh, đọc từ, hiện thông tin từ, 1,5 giây sau tự sang câu tiếp.
- * Trả lời sai: chỉ tô đỏ (không lộ đáp án), chờ người dùng bấm Tiếp tục / Enter. Câu chọn được chọn lại;
- * chọn trúng ở lần sau thì cũng tự sang câu tiếp, nhưng điểm vẫn tính theo lần chọn đầu tiên.
- * Kết thúc thì emit 'finished' với danh sách { word, correct, skipped }.
- * Mỗi câu trả lời lần đầu emit 'answered' { correct }, mỗi câu bỏ qua emit 'skipped'.
- * stopAfterCurrent: kết thúc lượt ngay sau câu hiện tại.
+ * One review round: one question at a time, only the first answer of each question counts.
+ * The "Continue →" button pinned on the right: before answering it skips (no score, no schedule change;
+ * a skipped word is asked again once at least 5 questions later if the round is long enough), after answering it goes to the next question.
+ * Correct answer: highlighted green, the word is read aloud, its details are shown, and it moves on after 1.5 seconds.
+ * Wrong answer: only highlighted red (the answer is not revealed), waits for Continue / Enter. Choice questions can be picked again;
+ * a later correct pick also moves on automatically, but the score still uses the first pick.
+ * At the end, emits 'finished' with a list of { word, correct, skipped }.
+ * Each first answer emits 'answered' { correct }, each skipped question emits 'skipped'.
+ * stopAfterCurrent: end the round right after the current question.
  */
 const AUTO_NEXT_DELAY = 1500
 const props = defineProps({
   questions: { type: Array, required: true },
-  recentIds: { type: Array, default: () => [] }, // từ vừa hỏi ở lượt trước, để không lặp trong vòng 5 câu
+  recentIds: { type: Array, default: () => [] }, // words asked in the previous round, to avoid repeats within 5 questions
   stopAfterCurrent: { type: Boolean, default: false },
-  priorityIds: { type: Array, default: () => [] }, // từ thưởng vừa học: phải hỏi trong 10 câu đầu
+  priorityIds: { type: Array, default: () => [] }, // bonus word just learned: must be asked within the first 10 questions
 })
 const emit = defineEmits(['finished', 'shown', 'answered', 'skipped'])
 
@@ -33,12 +33,12 @@ const queue = ref(placeWithin(arrangeWithGap(props.questions, props.recentIds), 
 const requeued = new Set()
 const index = ref(0)
 const results = ref([])
-const feedback = ref(null) // { correct, answer } sau khi trả lời câu hiện tại
+const feedback = ref(null) // { correct, answer } after answering the current question
 const saving = ref(false)
 const saveError = ref(false)
-const nextRequested = ref(false) // bấm Tiếp tục khi kết quả đang được lưu
+const nextRequested = ref(false) // Continue pressed while the result is still being saved
 const { speak } = useSpeech()
-const autoNext = ref(false) // đang đếm ngược tự sang câu tiếp
+const autoNext = ref(false) // counting down to move on automatically
 let autoTimer = null
 
 function cancelAutoNext() {
@@ -75,7 +75,7 @@ async function onAnswered({ correct, answer }) {
     advance()
     return
   }
-  // Tính 1,5 giây từ lúc trả lời; lưu lỗi thì dừng lại để người dùng thấy thông báo
+  // 1.5 seconds counted from the answer; if saving fails, stop so the user sees the message
   if (autoNext.value && !saveError.value && current.value === q) {
     autoTimer = setTimeout(next, Math.max(AUTO_NEXT_DELAY - (Date.now() - answeredAt), 0))
   } else {
@@ -83,7 +83,7 @@ async function onAnswered({ correct, answer }) {
   }
 }
 
-/** Câu chọn: sai lần đầu nhưng chọn trúng ở lần sau (không đổi điểm) -> đọc từ rồi tự sang câu tiếp. */
+/** Choice question: wrong at first but a later correct pick (score unchanged) -> read the word, then move on automatically. */
 function onSolved() {
   speak(current.value.word.word)
   cancelAutoNext()
@@ -107,13 +107,13 @@ function advance() {
 function next() {
   if (!feedback.value) return
   if (saving.value) {
-    nextRequested.value = true // sang câu tiếp ngay khi lưu xong
+    nextRequested.value = true // go to the next question as soon as saving finishes
     return
   }
   advance()
 }
 
-/** Nút "Tiếp tục →": chưa trả lời thì bỏ qua, đã trả lời thì sang câu tiếp. */
+/** "Continue →" button: skips when not answered yet, goes to the next question when answered. */
 function onNext() {
   if (feedback.value) next()
   else skip()
@@ -124,10 +124,10 @@ async function skip() {
   const q = current.value
   results.value.push({ word: q.word, correct: false, skipped: true })
   emit('skipped')
-  await nextTick() // để stopAfterCurrent (do 'skipped' bật) kịp cập nhật trước khi sang câu
-  // Hỏi lại một lần sau ít nhất 5 câu nữa, nếu lượt còn đủ dài
+  await nextTick() // so stopAfterCurrent (set by 'skipped') is updated before moving on
+  // Ask again once at least 5 questions later, if the round is long enough
   let insertAt = index.value + 1 + REPEAT_GAP
-  // Không chen câu hỏi lại lên trước từ mới chưa hỏi, để từ mới vẫn nằm trong 10 câu đầu
+  // Do not insert re-asked questions ahead of an unasked new word, so it stays within the first 10 questions
   const pendingNew = queue.value.findLastIndex((x, i) => i > index.value && props.priorityIds.includes(x.word.id))
   if (pendingNew >= 0 && insertAt <= pendingNew) insertAt = pendingNew + 1
   if (!requeued.has(q.word.id) && insertAt <= queue.value.length) {

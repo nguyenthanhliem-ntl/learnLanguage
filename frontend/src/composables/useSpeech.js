@@ -3,7 +3,7 @@ import { onBeforeUnmount, ref } from 'vue'
 const supported =
   typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window
 
-/** Ưu tiên giọng en-US chất lượng tốt (Google/Microsoft), sau đó tới bất kỳ giọng tiếng Anh nào. */
+/** Prefer a good en-US voice (Google/Microsoft), then any English voice. */
 function pickVoice() {
   const voices = window.speechSynthesis.getVoices()
   return (
@@ -17,17 +17,17 @@ function pickVoice() {
 export const NORMAL_RATE = 0.9
 export const SLOW_RATE = 0.5
 
-// Số lần người dùng bấm nút loa của từng từ (dùng chung mọi nút loa): lần chẵn phát chậm
+// How many times the user pressed the speaker for each word (shared by every speaker button): even presses play slower
 const tapCounts = new Map()
 
-// Chrome tải danh sách giọng bất đồng bộ: gọi trước một lần để lần phát đầu có giọng
+// Chrome loads the voice list asynchronously: call it once up front so the first playback has a voice
 if (supported) {
   window.speechSynthesis.getVoices()
 }
 
 /**
- * Phát âm tiếng Anh bằng Web Speech API.
- * Trình duyệt không hỗ trợ thì {@code supported = false} và speak() không làm gì.
+ * Pronounces English with the Web Speech API.
+ * If the browser does not support it, {@code supported = false} and speak() does nothing.
  */
 export function useSpeech() {
   const speaking = ref(false)
@@ -49,8 +49,8 @@ export function useSpeech() {
   }
 
   /**
-   * Phát khi người dùng bấm nút loa: với mỗi từ, lần bấm 1, 3, 5... đọc tốc độ {@code rate},
-   * lần 2, 4, 6... đọc chậm ({@code SLOW_RATE}) để nghe rõ từng âm.
+   * Plays when the user presses a speaker button: for each word, presses 1, 3, 5... read at {@code rate},
+   * presses 2, 4, 6... read slowly ({@code SLOW_RATE}) so every sound is clear.
    */
   function speakTap(text, { rate = NORMAL_RATE } = {}) {
     const key = text?.trim().toLowerCase()

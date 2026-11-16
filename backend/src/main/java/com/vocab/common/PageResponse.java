@@ -5,7 +5,7 @@ import java.util.function.Function;
 
 import org.springframework.data.domain.Page;
 
-/** Response phân trang chung. {@code page} bắt đầu từ 0. */
+/** Common paged response. {@code page} starts at 0. */
 public record PageResponse<T>(List<T> items, int page, int size, long totalElements, int totalPages) {
 
     public static <S, T> PageResponse<T> from(Page<S> page, Function<S, T> mapper) {

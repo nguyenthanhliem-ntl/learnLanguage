@@ -1,5 +1,5 @@
-// Bảng động từ bất quy tắc thông dụng: [V1, V2, V3, nghĩa, thông dụng?]
-// Dạng có "/" là hai cách đều đúng (thường dạng đầu là Anh–Anh, dạng sau là Anh–Mỹ hoặc dạng có quy tắc).
+// Common irregular verbs: [V1, V2, V3, meaning, common?]
+// Forms with "/" are both correct (usually the first is British, the second American or the regular form).
 const RAW = [
   ['arise', 'arose', 'arisen', 'nảy sinh, xuất hiện'],
   ['awake', 'awoke', 'awoken', 'thức dậy, đánh thức'],
@@ -168,8 +168,8 @@ const RAW = [
 const first = (form) => form.split('/')[0]
 
 /**
- * Nhóm theo quy luật (so sánh dạng đầu tiên của mỗi cột):
- * AAA: cả 3 giống nhau · ABB: V2 = V3 · ABA: V1 = V3 · ABC: cả 3 khác nhau
+ * Groups by pattern (comparing the first form of each column):
+ * AAA: all 3 the same · ABB: V2 = V3 · ABA: V1 = V3 · ABC: all 3 different
  */
 function patternOf(v1, v2, v3) {
   const [a, b, c] = [v1, first(v2), first(v3)]

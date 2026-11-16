@@ -6,12 +6,12 @@ import PartOfSpeech from '@/components/ui/PartOfSpeech.vue'
 import SpeakButton from '@/components/ui/SpeakButton.vue'
 import t from '@/locales/vi'
 
-// Hiện sau mỗi câu: Đúng/Sai, đáp án kèm phiên âm và nghĩa, tự phát âm lại từ
+// Shown after each question: Correct/Wrong, the answer with phonetic and meaning, and the word is pronounced again
 const props = defineProps({
   word: { type: Object, required: true },
   correct: { type: Boolean, required: true },
-  userAnswer: { type: String, default: '' }, // câu trả lời sai của người dùng (nghe – gõ)
-  autoSpeak: { type: Boolean, default: true }, // tắt khi nơi dùng đã tự phát âm
+  userAnswer: { type: String, default: '' }, // the user's wrong answer (listen – type)
+  autoSpeak: { type: Boolean, default: true }, // disable when the caller already pronounces the word
 })
 
 const { speak } = useSpeech()

@@ -15,7 +15,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/** Tiến độ học SM-2 của một từ. Bản ghi được tạo khi user bấm "Đã nhớ" lần đầu (bước 4). */
+/** SM-2 learning progress of a word. Created when the user presses "Remembered" for the first time (step 4). */
 @Entity
 @Table(name = "USER_WORD_PROGRESS")
 public class UserWordProgress {
@@ -59,7 +59,7 @@ public class UserWordProgress {
     protected UserWordProgress() {
     }
 
-    /** Tiến độ mới cho một từ chưa học: SM-2 ở trạng thái ban đầu. */
+    /** New progress for an unlearned word: SM-2 in its initial state. */
     public UserWordProgress(Long userId, Long wordId) {
         this.userId = userId;
         this.wordId = wordId;
@@ -75,7 +75,7 @@ public class UserWordProgress {
         return new Sm2Calculator.State(easeFactor.doubleValue(), intervalDays, repetitions);
     }
 
-    /** Ghi nhận một lần trả lời: cập nhật SM-2, lịch ôn tiếp theo và bộ đếm đúng/sai. */
+    /** Records one answer: updates SM-2, the next review date and the correct/wrong counters. */
     public void apply(Sm2Calculator.Result result, boolean correct, LocalDate today, LocalDateTime now) {
         this.easeFactor = result.easeFactorDecimal();
         this.intervalDays = result.state().intervalDays();
@@ -91,15 +91,15 @@ public class UserWordProgress {
     }
 
     /**
-     * Ôn sớm (từ chưa đến hạn) và trả lời đúng: chỉ ghi nhận, không kéo dài lịch ôn.
-     * Nếu không, ôn liên tục nhiều lần trong ngày sẽ nhân khoảng cách lên rất nhanh.
+     * Early review (word not due yet) answered correctly: only recorded, the schedule is not extended.
+     * Otherwise reviewing many times a day would multiply the interval very quickly.
      */
     public void recordEarlyCorrect(LocalDateTime now) {
         this.lastReviewedAt = now;
         this.correctCount++;
     }
 
-    /** Từ đã đến hạn ôn theo SM-2 (chưa có ngày ôn thì coi như đến hạn). */
+    /** The word is due for review under SM-2 (no review date yet counts as due). */
     public boolean isDue(LocalDate today) {
         return nextReviewDate == null || !nextReviewDate.isAfter(today);
     }

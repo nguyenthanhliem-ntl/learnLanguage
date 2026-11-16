@@ -7,7 +7,7 @@ import t from '@/locales/vi'
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend)
 
-// Biểu đồ cột nhóm: số từ mới đã học và số câu đã ôn mỗi ngày (cùng đơn vị, một trục)
+// Grouped bar chart: new words learned and review questions answered per day (same unit, one axis)
 const props = defineProps({
   days: { type: Array, required: true }, // [{ date, learned, reviewed }]
 })

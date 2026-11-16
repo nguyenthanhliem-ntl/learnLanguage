@@ -3,7 +3,7 @@ package com.vocab.word.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-/** Thêm / sửa từ: bắt buộc đủ 4 trường. */
+/** Add / edit a word: all 4 fields are required. */
 public record WordRequest(
         @NotBlank(message = "Vui lòng nhập từ mới")
         @Size(max = 100, message = "Từ mới tối đa 100 ký tự")

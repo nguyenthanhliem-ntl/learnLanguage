@@ -5,7 +5,7 @@ import PublicLayout from '@/layouts/PublicLayout.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 
 const routes = [
-  // Landing page cho khách; đã đăng nhập thì guestOnly chuyển sang Tổng quan
+  // Landing page for visitors; signed-in users are sent to the Dashboard by guestOnly
   {
     path: '/',
     name: 'landing',
@@ -40,9 +40,9 @@ const routes = [
         path: 'grammar/:slug',
         name: 'grammarTense',
         component: () => import('@/views/grammar/GrammarTenseView.vue'),
-        meta: { nav: 'grammar' }, // menu "Ngữ pháp" vẫn sáng khi xem một thì
+        meta: { nav: 'grammar' }, // keep the "Grammar" menu highlighted while viewing a tense
       },
-      // Đường dẫn cũ trước khi gộp Học từ mới + Ôn tập thành Luyện tập
+      // Old paths from before Learn new words + Review were merged into Practice
       { path: 'learn', redirect: { name: 'practice' } },
       { path: 'review', redirect: { name: 'practice' } },
       { path: 'settings', redirect: { name: 'account' } },
@@ -57,14 +57,14 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  // Link neo (#cach-hoc...) cuộn tới section, chừa chỗ cho header dính 64px
+  // Anchor links (#cach-hoc...) scroll to the section, leaving room for the 64px sticky header
   scrollBehavior(to, from, savedPosition) {
     if (to.hash) return { el: to.hash, top: 72, behavior: 'smooth' }
     return savedPosition ?? { top: 0 }
   },
 })
 
-// Route guard: trang trong app cần đăng nhập; trang đăng nhập/đăng ký thì không cho vào khi đã đăng nhập
+// Route guard: app pages require login; login/sign-up pages are not available once signed in
 router.beforeEach((to) => {
   useLoadingStore().setRouting(true)
   const loggedIn = Boolean(getToken())
@@ -77,7 +77,7 @@ router.beforeEach((to) => {
   return true
 })
 
-// Tắt loading bar của chuyển trang khi xong (kể cả khi lỗi tải component)
+// Turn off the navigation loading bar when done (even if loading the component fails)
 router.afterEach(() => useLoadingStore().setRouting(false))
 router.onError(() => useLoadingStore().setRouting(false))
 

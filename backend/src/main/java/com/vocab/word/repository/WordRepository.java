@@ -22,22 +22,22 @@ public interface WordRepository extends JpaRepository<Word, Long> {
 
     List<Word> findByUserIdAndIdIn(Long userId, Collection<Long> ids);
 
-    /** Toàn bộ (id, từ) của kho, dùng làm đáp án nhiễu cho câu trắc nghiệm. */
+    /** Every (id, word) in the bank, used as distractors for multiple-choice questions. */
     @Query("select new com.vocab.study.dto.QuizOption(w.id, w.word) from Word w where w.userId = :userId")
     List<QuizOption> findAllOptions(@Param("userId") Long userId);
 
-    /** Mọi nghĩa đã có của cùng một từ (so sánh lower(trim(word)), dùng index IX_WORDS_USER_WORD). */
+    /** All existing meanings of the same word (compares lower(trim(word)), uses index IX_WORDS_USER_WORD). */
     @Query("select w from Word w where w.userId = :userId and lower(trim(w.word)) = :normalized order by w.id")
     List<Word> findAllByNormalizedWord(@Param("userId") Long userId, @Param("normalized") String normalized);
 
-    /** 4 cột của toàn bộ kho, dùng cho import để kiểm tra trùng hàng loạt. */
+    /** The 4 columns of the whole bank, used by import for bulk duplicate checks. */
     @Query("select new com.vocab.word.dto.NewWord(w.word, w.partOfSpeech, w.phonetic, w.meaning) from Word w where w.userId = :userId")
     List<NewWord> findAllEntries(@Param("userId") Long userId);
 
     @Query("select p.status from UserWordProgress p where p.userId = :userId and p.wordId = :wordId")
     Optional<ProgressStatus> findProgressStatus(@Param("userId") Long userId, @Param("wordId") Long wordId);
 
-    /** Danh sách từ kèm trạng thái, tìm theo từ hoặc nghĩa. {@code pattern} đã lower và escape, null = không lọc. */
+    /** Word list with status, searched by word or meaning. {@code pattern} is already lower-cased and escaped, null = no filter. */
     @Query(value = """
             select new com.vocab.word.dto.WordRow(w, p.status)
             from Word w

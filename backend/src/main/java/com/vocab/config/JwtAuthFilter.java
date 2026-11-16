@@ -15,8 +15,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * Đọc header "Authorization: Bearer ..." và gắn user vào SecurityContext.
- * Token sai hoặc hết hạn thì bỏ qua; route cần đăng nhập sẽ tự trả 401.
+ * Reads the "Authorization: Bearer ..." header and puts the user into the SecurityContext.
+ * Invalid or expired tokens are ignored; routes that require login return 401 on their own.
  */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {

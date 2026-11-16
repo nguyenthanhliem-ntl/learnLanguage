@@ -2,7 +2,7 @@ package com.vocab.word.dto;
 
 import com.vocab.study.entity.ProgressStatus;
 
-/** Trạng thái hiển thị trong Kho từ: Chưa học / Đang học / Đã thuộc. */
+/** Status shown in the word bank: Not started / Learning / Mastered. */
 public enum WordStatus {
     NOT_STARTED,
     LEARNING,

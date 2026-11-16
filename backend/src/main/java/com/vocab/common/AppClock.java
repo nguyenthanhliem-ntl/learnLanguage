@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.vocab.config.AppProperties;
 
-/** Thời gian hiện tại theo múi giờ của app (Asia/Ho_Chi_Minh), dùng cho "hôm nay", SM-2, streak. */
+/** Current time in the app's time zone (Asia/Ho_Chi_Minh), used for "today", SM-2 and streaks. */
 @Component
 public class AppClock {
 

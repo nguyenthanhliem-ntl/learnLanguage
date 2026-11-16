@@ -25,7 +25,7 @@ const weekHeights = ['h-[45%]', 'h-[70%]', 'h-[55%]', 'h-[90%]', 'h-[35%]', 'h-[
       />
 
       <div class="mt-12 grid gap-6 md:grid-cols-3">
-        <!-- Flashcard mẫu: lật được, phát âm được -->
+        <!-- Sample flashcard: can be flipped and pronounced -->
         <article
           v-reveal
           class="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm"
@@ -128,7 +128,7 @@ const weekHeights = ['h-[45%]', 'h-[70%]', 'h-[55%]', 'h-[90%]', 'h-[35%]', 'h-[
           </div>
         </article>
 
-        <!-- Tiến độ -->
+        <!-- Progress -->
         <article
           v-reveal="200"
           class="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm"

@@ -6,7 +6,7 @@ import t from '@/locales/vi'
 const props = defineProps({
   open: { type: Boolean, default: false },
   title: { type: String, required: true },
-  // Không cho đóng khi đang lưu
+  // Cannot be closed while saving
   persistent: { type: Boolean, default: false },
 })
 const emit = defineEmits(['close'])
@@ -27,7 +27,7 @@ watch(() => props.open, async (open) => {
     lastFocused = document.activeElement
     document.addEventListener('keydown', onKeydown)
     await nextTick()
-    // Focus ô nhập đầu tiên (hoặc chính panel)
+    // Focus the first input (or the panel itself)
     const first = panel.value?.querySelector('input, textarea, select, button:not([data-close])')
     ;(first ?? panel.value)?.focus()
   } else {

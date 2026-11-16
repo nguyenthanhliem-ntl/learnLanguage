@@ -4,13 +4,13 @@ import LevelLibrary from '@/components/library/LevelLibrary.vue'
 import MonthlyHeatmap from '@/components/ui/MonthlyHeatmap.vue'
 import t from '@/locales/vi'
 
-// Tổng quan: card "Hôm nay" (lời chào + tần suất học theo tháng) và kho từ vựng A1–C2
+// Dashboard: "Today" card (greeting + monthly study frequency) and the A1–C2 vocabulary bank
 const auth = useAuthStore()
 </script>
 
 <template>
   <div class="space-y-6">
-    <!-- Card "Hôm nay" -->
+    <!-- "Today" card -->
     <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-hero-start to-hero-end p-6 text-white shadow-xl shadow-primary-600/10 sm:p-8">
       <div
         class="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-2xl"
@@ -24,7 +24,7 @@ const auth = useAuthStore()
           {{ t.topbar.greeting(auth.user?.username ?? '') }}
         </h1>
 
-        <!-- Tần suất học theo tháng -->
+        <!-- Monthly study frequency -->
         <MonthlyHeatmap
           variant="hero"
           class="mt-6"
@@ -32,7 +32,7 @@ const auth = useAuthStore()
       </div>
     </section>
 
-    <!-- Kho từ vựng theo cấp độ -->
+    <!-- Vocabulary bank by level -->
     <LevelLibrary />
   </div>
 </template>

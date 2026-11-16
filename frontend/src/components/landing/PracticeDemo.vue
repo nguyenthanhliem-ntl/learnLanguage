@@ -6,11 +6,11 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import PartOfSpeech from '@/components/ui/PartOfSpeech.vue'
 import t from '@/locales/vi'
 
-// Hai câu ôn mẫu cho khách thử trên landing: nghĩa → chọn từ, phiên âm → gõ từ
+// Two sample review questions visitors can try on the landing page: meaning → pick the word, phonetic → type the word
 const p = t.landing.how.practice
 const { speak } = useSpeech()
 
-// --- Chọn đáp án ---
+// --- Pick the answer ---
 const chosen = ref(null)
 function choose(option) {
   if (chosen.value) return
@@ -24,7 +24,7 @@ function optionClass(option) {
   return 'border-border opacity-50'
 }
 
-// --- Gõ từ ---
+// --- Type the word ---
 const typed = ref('')
 const typedResult = ref(null) // null | true | false
 const showHint = ref(false)
@@ -42,7 +42,7 @@ function resetType() {
 
 <template>
   <div class="space-y-4">
-    <!-- Nghĩa → chọn từ -->
+    <!-- Meaning → pick the word -->
     <div class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
       <div class="flex items-center justify-between">
         <span class="rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-600">{{ p.choiceBadge }}</span>
@@ -86,7 +86,7 @@ function resetType() {
       </p>
     </div>
 
-    <!-- Phiên âm → gõ từ -->
+    <!-- Phonetic → type the word -->
     <form
       class="rounded-2xl border border-border bg-surface p-5 text-center shadow-sm sm:p-6"
       autocomplete="off"

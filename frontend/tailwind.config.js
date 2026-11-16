@@ -1,5 +1,5 @@
 /** Design tokens theo CLAUDE.md §8.1 */
-/** Giá trị màu nằm trong biến CSS (src/assets/main.css) để chế độ Tối chỉ cần đổi biến, không cần class dark: */
+/** Colour values live in CSS variables (src/assets/main.css) so Dark mode only swaps variables, no dark: classes needed */
 
 const token = (name) => `rgb(var(--c-${name}) / <alpha-value>)`
 
@@ -40,7 +40,7 @@ export default {
           pink: token('stat-pink'),
           blue: token('stat-blue'),
         },
-        // Khối gradient nổi bật: xanh ở giao diện Sáng, xanh tối dịu ở giao diện Tối
+        // Highlighted gradient block: blue in Light mode, soft dark blue in Dark mode
         hero: {
           start: token('hero-start'),
           end: token('hero-end'),

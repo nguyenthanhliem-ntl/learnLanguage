@@ -1,4 +1,4 @@
-/** Thời gian hiển thị thông báo thành công trước khi chuyển trang. */
+/** How long the success message is shown before navigating. */
 export const SUCCESS_REDIRECT_DELAY = 1200
 
 export function delay(ms) {

@@ -1,6 +1,6 @@
-# VocabMaster - môi trường thật: Oracle Free + backend Spring Boot + Nginx (frontend).
-# Biến bí mật đặt trong file .env cùng thư mục (copy từ deploy/env.example, KHÔNG commit).
-# Chạy: docker compose up -d --build     Xem log: docker compose logs -f backend
+# VocabMaster - production: Oracle Free + Spring Boot backend + Nginx (frontend).
+# Secrets live in the .env file in this directory (copied from deploy/env.example, do NOT commit).
+# Run: docker compose up -d --build     Logs: docker compose logs -f backend
 
 services:
   db:
@@ -18,7 +18,7 @@ services:
       timeout: 10s
       retries: 40
       start_period: 120s
-    # Không mở cổng DB ra ngoài; chỉ backend trong mạng Docker kết nối được
+    # The DB port is not exposed; only the backend inside the Docker network can connect
 
   backend:
     build: ./backend

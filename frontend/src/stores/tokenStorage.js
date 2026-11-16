@@ -1,12 +1,12 @@
-// Lưu JWT trong sessionStorage: đóng tab / trình duyệt là tự đăng xuất (tải lại trang vẫn giữ đăng nhập).
-// Bọc try/catch vì trình duyệt có thể chặn storage.
+// Store the JWT in sessionStorage: closing the tab / browser signs the user out (reloading keeps them signed in).
+// Wrapped in try/catch because the browser may block storage.
 const KEY = 'vocab.token'
 
-// Bản cũ lưu token trong localStorage (còn nguyên sau khi đóng trình duyệt): xóa đi để không tự đăng nhập lại
+// The old version kept the token in localStorage (survives closing the browser): remove it so the user is not signed in again automatically
 try {
   localStorage.removeItem(KEY)
 } catch {
-  // bỏ qua
+  // ignore
 }
 
 export function getToken() {
@@ -21,7 +21,7 @@ export function setToken(token) {
   try {
     sessionStorage.setItem(KEY, token)
   } catch {
-    // bỏ qua: không lưu được thì user phải đăng nhập lại khi tải lại trang
+    // ignore: if it cannot be saved, the user has to sign in again after reloading
   }
 }
 
@@ -29,6 +29,6 @@ export function clearToken() {
   try {
     sessionStorage.removeItem(KEY)
   } catch {
-    // bỏ qua
+    // ignore
   }
 }

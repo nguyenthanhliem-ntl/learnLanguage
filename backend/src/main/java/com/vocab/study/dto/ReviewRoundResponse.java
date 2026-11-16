@@ -3,10 +3,10 @@ package com.vocab.study.dto;
 import java.util.List;
 
 /**
- * Một lượt ôn tập.
+ * One review round.
  *
- * @param questions    các câu hỏi của lượt
- * @param learnedCount tổng số từ đã học (có thể ôn) của user
+ * @param questions    the round's questions
+ * @param learnedCount total learned (reviewable) words of the user
  */
 public record ReviewRoundResponse(List<ReviewQuestion> questions, long learnedCount) {
 }

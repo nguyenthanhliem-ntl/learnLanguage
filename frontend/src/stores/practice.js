@@ -12,8 +12,8 @@ function readSaved() {
 }
 
 /**
- * Trạng thái Luyện tập trong một lần đăng nhập: đã vượt qua phần ôn (≥70%) hay chưa.
- * Đăng nhập / đăng xuất sẽ reset, nên mỗi lần đăng nhập vào Luyện tập đều phải ôn trước.
+ * Practice state for one login session: whether the review (≥70%) has been passed.
+ * Signing in / out resets it, so every login has to review first in Practice.
  */
 export const usePracticeStore = defineStore('practice', () => {
   const reviewPassed = ref(readSaved())
@@ -24,7 +24,7 @@ export const usePracticeStore = defineStore('practice', () => {
       if (value) sessionStorage.setItem(KEY, '1')
       else sessionStorage.removeItem(KEY)
     } catch {
-      // bỏ qua: chỉ mất trạng thái khi tải lại trang
+      // ignore: the state is only lost on page reload
     }
   }
 

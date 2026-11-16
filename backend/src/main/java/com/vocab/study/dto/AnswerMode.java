@@ -2,12 +2,12 @@ package com.vocab.study.dto;
 
 import com.vocab.study.entity.ActivityType;
 
-/** Cách người dùng trả lời: chọn 1 trong 4 từ, hoặc tự gõ từ tiếng Anh. */
+/** How the user answers: pick 1 of 4 words, or type the English word. */
 public enum AnswerMode {
     CHOICE,
     TYPE;
 
-    /** Ghi vào STUDY_LOG: chọn đáp án = QUIZ, tự gõ = LISTEN (dạng gõ từ). */
+    /** Stored in STUDY_LOG: picking an answer = QUIZ, typing = LISTEN (typing mode). */
     public ActivityType activityType() {
         return this == CHOICE ? ActivityType.QUIZ : ActivityType.LISTEN;
     }

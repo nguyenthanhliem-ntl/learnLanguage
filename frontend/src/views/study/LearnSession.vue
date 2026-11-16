@@ -10,14 +10,14 @@ import Flashcard from '@/components/study/Flashcard.vue'
 import t from '@/locales/vi'
 
 /*
- * Học từ mới trong Luyện tập: lấy phần còn lại của mục tiêu hôm nay (backend tự trừ số từ đã học hôm nay,
- * nên thoát ra vào lại sẽ học tiếp từ kế tiếp). Mỗi lần Next lưu ngay từ đó vào lịch ôn.
- * Không còn từ để học thì emit 'finished' để PracticeView tự chuyển sang ôn tập.
+ * Learning new words in Practice: fetches what is left of today's goal (the backend subtracts today's learned words,
+ * so leaving and coming back continues with the next word). Each Next saves that word to the review schedule right away.
+ * When there are no words left, emits 'finished' so PracticeView switches to review.
  *   finished: { reason: 'goalReached' | 'allLearned' | 'emptyBank', learned, learnedIds, learnedToday, dailyGoal }
  */
 const props = defineProps({
-  limit: { type: Number, default: null }, // 1 = từ thưởng
-  bonusReason: { type: String, default: null }, // 'streak' (đúng 20 câu liên tiếp) | 'skip' (bỏ qua 10 câu liên tiếp)
+  limit: { type: Number, default: null }, // 1 = bonus word
+  bonusReason: { type: String, default: null }, // 'streak' (20 correct in a row) | 'skip' (10 skips in a row)
 })
 const emit = defineEmits(['finished'])
 
@@ -31,7 +31,7 @@ const flipped = ref(false)
 const busy = ref(false)
 const actionError = ref('')
 const learnedCount = ref(0)
-const learnedIds = [] // id các từ đã bấm Next trong lượt này
+const learnedIds = [] // ids of the words Next was pressed on in this batch
 
 const current = computed(() => words.value[index.value])
 const isLast = computed(() => index.value === words.value.length - 1)
@@ -82,7 +82,7 @@ async function next() {
     learnedIds.push(current.value.id)
     learnedCount.value++
     if (isLast.value) {
-      // Hết lượt: đủ mục tiêu hôm nay hoặc kho đã hết từ mới
+      // End of batch: today's goal reached or the bank has no new words left
       const remaining = (info.value?.notLearnedCount ?? 0) - learnedCount.value
       finish(remaining > 0 ? 'goalReached' : 'allLearned')
     } else {
@@ -110,7 +110,7 @@ onMounted(load)
 </script>
 
 <template>
-  <!-- Đang tải -->
+  <!-- Loading -->
   <div
     v-if="phase === 'loading'"
     class="space-y-6"
@@ -135,7 +135,7 @@ onMounted(load)
     </BaseButton>
   </div>
 
-  <!-- Đang học -->
+  <!-- Learning -->
   <div
     v-else-if="phase === 'learning' && current"
     class="space-y-6"

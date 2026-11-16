@@ -1,11 +1,11 @@
 package com.vocab.study.dto;
 
-/** Gợi ý hiện cho người dùng trong câu ôn tập. */
+/** Hint shown to the user in a review question. */
 public enum PromptType {
-    /** Phát âm từ (chỉ đi với AnswerMode.TYPE). */
+    /** Pronunciation of the word (only with AnswerMode.TYPE). */
     LISTEN,
-    /** Ngữ nghĩa + loại từ. */
+    /** Meaning + part of speech. */
     MEANING,
-    /** Phiên âm + loại từ (chỉ dùng khi từ có phiên âm). */
+    /** Phonetic + part of speech (only when the word has a phonetic). */
     PHONETIC
 }

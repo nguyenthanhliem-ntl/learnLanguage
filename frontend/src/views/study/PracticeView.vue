@@ -13,14 +13,14 @@ import LearnSession from './LearnSession.vue'
 import t from '@/locales/vi'
 
 /*
- * Luyện tập là một luồng liền mạch, người dùng không phải chọn:
- *   Ôn từ đã học  ->  (đúng >= 70%) Học từ mới tới hết mục tiêu hôm nay  ->  Ôn lại từ đã học (lặp lại)
- * - Mỗi lần đăng nhập phải qua lượt ôn đầu tiên (>= 70% ở lần chọn đầu) mới tới từ mới.
- *   Chưa đạt: lượt sau gồm các từ đã học khác; còn dưới 10 từ khác thì ôn lại các từ vừa sai.
- * - Số từ mới đã học hôm nay lưu ở backend sau mỗi lần Next, nên thoát ra vào lại sẽ học tiếp từ kế tiếp.
- * - Hết từ mới hôm nay (hoặc kho hết từ mới): quay lại ôn các từ đã học; ôn hết thì bắt đầu vòng mới.
- * - Đúng 20 câu liên tiếp (lần trả lời đầu, chỉ ở phần ôn liên tục) hoặc bỏ qua 10 câu liên tiếp (tính cả lượt
- *   ôn đầu phiên) thì dừng lượt, học thêm 1 từ mới rồi ôn tiếp. Lượt ôn đầu chưa đạt thì vẫn phải đạt 70% sau đó.
+ * Practice is one continuous flow, the user does not have to choose:
+ *     Review learned words  ->  (>= 70% correct) Learn new words up to today's goal  ->  Review learned words again (repeating)
+ * - Every login must pass the first review round (>= 70% on first answers) before new words.
+ *     Not passed: the next round uses other learned words; with fewer than 10 others, the words just answered wrong are reviewed again.
+ * - New words learned today are saved in the backend after each Next, so leaving and coming back continues with the next word.
+ * - No new words left today (or in the bank): go back to reviewing learned words; after a full cycle, start a new one.
+ * - 20 correct in a row (first answers, continuous review only) or 10 skips in a row (including the first review
+ *     round) stops the round, teaches 1 extra word, then review continues. An unpassed first review still requires 70% afterwards.
  */
 const PASS_RATE = 0.7
 const MIN_NEXT_ROUND = 10
@@ -34,7 +34,7 @@ const mode = ref('loading')
 const loadError = ref('')
 const questions = ref([])
 const roundNo = ref(0)
-let reviewedIds = new Set() // các từ đã ôn trong vòng hiện tại
+let reviewedIds = new Set() // words reviewed in the current cycle
 let retryAction = null
 
 async function fetchQuestions(params) {
@@ -42,7 +42,7 @@ async function fetchQuestions(params) {
   return res.questions
 }
 
-/** Chạy một tác vụ tải, lỗi thì hiện nút Thử lại gọi lại đúng tác vụ đó. */
+/** Runs a loading task; on error, shows a Retry button that runs the same task again. */
 async function run(action) {
   mode.value = 'loading'
   loadError.value = ''
@@ -55,9 +55,9 @@ async function run(action) {
   }
 }
 
-// Từ thưởng vừa học: lượt ôn kế tiếp phải có từ này trong 10 câu đầu
+// Bonus word just learned: the next review round must include it within the first 10 questions
 const priorityIds = ref([])
-// 'gate' = ôn đầu phiên, 'review' = ôn liên tục
+// 'gate' = first review of the session, 'review' = continuous review
 const roundKind = ref('review')
 
 function startRound(qs, priority = []) {
@@ -68,10 +68,10 @@ function startRound(qs, priority = []) {
   mode.value = 'review'
 }
 
-// Không truyền: học tới hết mục tiêu hôm nay. 1: từ thưởng sau 20 câu đúng liên tiếp.
+// Omitted: learn up to today's goal. 1: bonus word after 20 correct answers in a row.
 const learnLimit = ref(null)
-const learnKey = ref(0) // mỗi lần vào học là một LearnSession mới
-const bonusReason = ref(null) // 'streak' | 'skip' khi đang học từ thưởng
+const learnKey = ref(0) // every visit to learning creates a new LearnSession
+const bonusReason = ref(null) // 'streak' | 'skip' while learning a bonus word
 function goLearn(limit = null, reason = null) {
   learnLimit.value = limit
   bonusReason.value = reason
@@ -79,47 +79,47 @@ function goLearn(limit = null, reason = null) {
   mode.value = 'learn'
 }
 
-// Chuỗi câu đúng liên tiếp trong phần ôn liên tục (sau khi đã qua lượt ôn đầu phiên)
-// Chuỗi câu bỏ qua liên tiếp: trả lời bất kỳ câu nào (đúng hay sai) thì đếm lại
+// Streak of correct answers in the continuous review (after the session's first review has been passed)
+// Streak of skipped questions: answering any question (correct or wrong) resets it
 const correctStreak = ref(0)
 const skipStreak = ref(0)
 const bonusPending = ref(null) // null | 'streak' | 'skip'
 function onAnswered({ correct }) {
   skipStreak.value = 0
-  // Chuỗi đúng 20 câu chỉ tính ở phần ôn liên tục (không tính ôn đầu phiên)
+  // The 20-correct streak only counts in the continuous review (not the session's first review)
   if (roundKind.value !== 'review') return
   correctStreak.value = correct ? correctStreak.value + 1 : 0
   if (correctStreak.value >= BONUS_STREAK) bonusPending.value = 'streak'
 }
-// Bỏ qua 10 câu liên tiếp: tính cả ở lượt ôn đầu phiên
+// 10 skips in a row: also counts in the session's first review
 function onSkipped() {
   skipStreak.value++
   if (skipStreak.value >= BONUS_SKIPS) bonusPending.value = 'skip'
 }
 
-/** Ôn tiếp các từ đã học; đã ôn hết trong vòng này thì bắt đầu vòng mới (hiện lại từ đầu). */
+/** Keep reviewing learned words; once every word in the cycle has been reviewed, start a new cycle (from the beginning). */
 async function continueReview(priority = []) {
   let qs = await fetchQuestions({ exclude: [...reviewedIds] })
   if (qs.length === 0 && reviewedIds.size > 0) {
     reviewedIds = new Set()
     qs = await fetchQuestions()
   }
-  // Từ thưởng chưa có trong lượt (chưa đến hạn ôn) thì lấy thêm câu hỏi cho riêng từ đó
+  // Bonus word not in the round (not due yet): fetch a question for that word alone
   const missing = priority.filter((id) => !qs.some((q) => q.word.id === id))
   if (missing.length) qs = [...qs, ...await fetchQuestions({ ids: missing })]
-  // Lượt quá ngắn (các từ cũ đều đã ôn trong vòng này): bù bằng từ đã học khác để từ thưởng có 10 câu xung quanh
+  // Round too short (old words already reviewed in this cycle): top up with other learned words so the bonus word has 10 questions around it
   if (priority.length && qs.length < NEW_WORD_WITHIN) {
     const extra = (await fetchQuestions()).filter((q) => !qs.some((x) => x.word.id === q.word.id))
     qs = [...qs, ...extra]
   }
   if (qs.length === 0) {
-    mode.value = 'empty' // chưa có từ nào đã học và cũng không còn từ mới
+    mode.value = 'empty' // no learned words and no new words left
     return
   }
   startRound(qs, priority)
 }
 
-/** Lượt ôn đầu chưa đạt: lấy từ đã học khác, kho còn ít thì ôn lại từ vừa sai. */
+/** First review not passed: use other learned words, or review the words just answered wrong when the bank is small. */
 async function nextGateRound(wrongIds) {
   let qs = await fetchQuestions({ exclude: [...reviewedIds] })
   if (qs.length < MIN_NEXT_ROUND) {
@@ -135,7 +135,7 @@ async function start() {
   }
   const qs = await fetchQuestions()
   if (qs.length === 0) {
-    // Chưa học từ nào: không có gì để ôn, vào thẳng từ mới
+    // Nothing learned yet: nothing to review, go straight to new words
     practice.setReviewPassed(true)
     goLearn()
     return
@@ -143,19 +143,19 @@ async function start() {
   startRound(qs)
 }
 
-// 5 từ hỏi gần nhất, để lượt sau không hỏi lại một từ trong vòng 5 câu
+// The last 5 words asked, so the next round does not repeat a word within 5 questions
 const recentIds = ref([])
 function onShown(wordId) {
-  reviewedIds.add(wordId) // chỉ tính từ đã thực sự hỏi, lượt có thể dừng giữa chừng để học từ thưởng
+  reviewedIds.add(wordId) // only count words that were actually asked, since a round can stop early for a bonus word
   recentIds.value = [...recentIds.value, wordId].slice(-REPEAT_GAP)
 }
 
 function onRoundFinished(results) {
-  // Câu bỏ qua không tính đúng/sai
+  // Skipped questions do not count as correct/wrong
   const answered = results.filter((r) => !r.skipped)
   const correct = answered.filter((r) => r.correct).length
 
-  // Từ thưởng: lượt dừng sớm để học 1 từ mới; lượt ôn đầu (nếu chưa đạt) vẫn tiếp tục sau đó
+  // Bonus word: the round stops early to learn 1 new word; an unpassed first review continues afterwards
   if (bonusPending.value) {
     const reason = bonusPending.value
     bonusPending.value = null
@@ -166,7 +166,7 @@ function onRoundFinished(results) {
   }
 
   if (!practice.reviewPassed) {
-    // Bỏ qua hết (đã thuộc) cũng coi như đạt
+    // Skipping everything (already known) also counts as passed
     if (answered.length === 0 || correct / answered.length >= PASS_RATE) {
       practice.setReviewPassed(true)
       goLearn()
@@ -180,10 +180,10 @@ function onRoundFinished(results) {
 }
 
 function onLearnFinished({ learnedIds = [] } = {}) {
-  // Từ thưởng (1 từ đơn lẻ): từ đó nằm trong 10 câu đầu của lượt ôn kế tiếp.
-  // Lượt từ mới theo mục tiêu ngày: học liền hết rồi ôn liên tục như thường.
+  // Bonus word (a single word): it appears within the first 10 questions of the next review round.
+  // Daily-goal new words: learn them all in one go, then continue reviewing as usual.
   const priority = bonusReason.value ? learnedIds : []
-  // Nguồn từ mới trống (vd chưa tự thêm từ nào) vẫn ôn các từ đã học; không có gì để ôn thì continueReview báo kho trống
+  // An empty new-word source (e.g. no self-added words yet) still reviews learned words; with nothing to review, continueReview shows the empty bank state
   run(() => continueReview(priority))
 }
 
@@ -196,7 +196,7 @@ onMounted(() => run(start))
 
 <template>
   <div class="mx-auto max-w-2xl space-y-5">
-    <!-- Tiêu đề + chế độ hiện tại -->
+    <!-- Title + current mode -->
     <div class="flex items-center justify-between gap-3">
       <div class="flex min-w-0 flex-wrap items-center gap-3">
         <h1 class="text-2xl font-bold sm:text-3xl">
@@ -223,7 +223,7 @@ onMounted(() => run(start))
       </BaseButton>
     </div>
 
-    <!-- Đang tải -->
+    <!-- Loading -->
     <div
       v-if="mode === 'loading'"
       class="space-y-5"
@@ -254,7 +254,7 @@ onMounted(() => run(start))
       </BaseButton>
     </div>
 
-    <!-- Ôn tập -->
+    <!-- Review -->
     <template v-else-if="mode === 'review'">
       <ReviewSession
         :key="roundNo"
@@ -269,7 +269,7 @@ onMounted(() => run(start))
       />
     </template>
 
-    <!-- Học từ mới -->
+    <!-- Learn new words -->
     <LearnSession
       v-else-if="mode === 'learn'"
       :key="learnKey"
@@ -278,7 +278,7 @@ onMounted(() => run(start))
       @finished="onLearnFinished"
     />
 
-    <!-- Kho trống -->
+    <!-- Empty bank -->
     <div
       v-else-if="mode === 'empty'"
       class="rounded-3xl border border-border bg-surface shadow-sm"

@@ -1,5 +1,5 @@
 package com.vocab.study.dto;
 
-/** Một lựa chọn trong câu trắc nghiệm. */
+/** One option in a multiple-choice question. */
 public record QuizOption(Long id, String word) {
 }
