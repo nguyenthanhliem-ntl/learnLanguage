@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: vocab-backend
+  # Đọc biến môi trường từ backend/.env nếu có (file này không commit)
+  config:
+    import: optional:file:.env[.properties]
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: oracle.jdbc.OracleDriver
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate      # schema do Flyway quản lý, Hibernate chỉ kiểm tra
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50      # dùng cho import Excel theo batch
+          time_zone: Asia/Ho_Chi_Minh
+        order_inserts: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-minutes: 1440
+  cors:
+    allowed-origins: http://localhost:5173
+  zone: Asia/Ho_Chi_Minh
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

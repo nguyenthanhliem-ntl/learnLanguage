@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VocabMaster – Nhớ từ vựng tiếng Anh mỗi ngày</title>
+  <meta name="description" content="Học từ vựng tiếng Anh bằng flashcard cho người Việt. Tự xây kho từ, học 20 từ mỗi ngày và ôn tập thông minh theo thuật toán SM-2." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Mono:wght@400;500&display=swap&subset=vietnamese" rel="stylesheet" />
+
+  <!-- Tailwind (play CDN) + design tokens theo CLAUDE.md §8.1 -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { 50: '#EFF6FF', 100: '#DBEAFE', 200: '#BFDBFE', 300: '#93C5FD', 600: '#2563EB', 700: '#1D4ED8', 800: '#1E40AF' },
+            ink: { 900: '#0F172A', 700: '#334155', 500: '#64748B', 400: '#94A3B8' },
+            surface: '#FFFFFF',
+            canvas: '#F8FAFC',
+            border: '#E2E8F0',
+            success: '#10B981',
+            danger: '#EF4444',
+            stat: { teal: '#14B8A6', violet: '#8B5CF6', pink: '#EC4899', blue: '#2563EB' },
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['"Noto Sans Mono"', 'ui-monospace', 'Consolas', 'monospace'],
+          },
+        },
+      },
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer components {
+      .container-x { @apply max-w-6xl mx-auto px-4; }
+      .section { @apply py-20 md:py-28; }
+      .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50; }
+      .btn-primary { @apply btn bg-primary-600 text-white shadow-sm hover:bg-primary-700; }
+      .btn-outline { @apply btn border border-border bg-surface text-ink-900 hover:border-primary-600 hover:text-primary-600; }
+      .btn-white { @apply btn bg-surface text-primary-700 hover:bg-primary-50; }
+      .pill { @apply inline-flex items-center gap-1.5 rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-600; }
+      .section-title { @apply text-3xl md:text-4xl font-bold tracking-tight text-ink-900; }
+      .section-desc { @apply mt-4 text-ink-500 max-w-xl mx-auto; }
+      .card { @apply rounded-2xl border border-border bg-surface shadow-sm; }
+      .check-item { @apply flex items-start gap-3 text-ink-700; }
+      .check-icon { @apply mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success/10 text-success; }
+      .icon-btn { @apply inline-flex items-center justify-center rounded-full bg-primary-50 text-primary-600 transition hover:bg-primary-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40 disabled:cursor-not-allowed disabled:opacity-50; }
+    }
+  </style>
+  <style>
+    /* Lật thẻ 3D (CLAUDE.md §8.4) */
+    .flip { perspective: 1000px; }
+    .flip-inner { transform-style: preserve-3d; transition: transform .5s; }
+    .flip.is-flipped .flip-inner { transform: rotateY(180deg); }
+    .flip-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+    .flip-back { transform: rotateY(180deg); }
+    /* Hiệu ứng xuất hiện khi cuộn, chỉ bật khi có JS */
+    .js .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+    .js .reveal.is-visible { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .js .reveal { opacity: 1; transform: none; transition: none; }
+      .flip-inner { transition: none; }
+      .animate-float { animation: none !important; }
+    }
+    @keyframes float { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
+    .animate-float { animation: float 4s ease-in-out infinite; }
+  </style>
+</head>
+<body class="bg-canvas font-sans text-ink-900 antialiased">
+
+  <!-- ================= 1. NAVBAR ================= -->
+  <header id="navbar" class="sticky top-0 z-50 border-b border-border/70 bg-surface/85 backdrop-blur transition-shadow">
+    <div class="container-x flex h-16 items-center justify-between gap-4">
+      <a href="#" class="flex items-center gap-2 text-lg font-bold">
+        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-600 to-primary-700 text-white">V</span>
+        VocabMaster
+      </a>
+      <nav class="hidden items-center gap-8 text-sm font-medium text-ink-500 md:flex" aria-label="Điều hướng chính">
+        <a href="#tinh-nang" class="transition hover:text-primary-600">Tính năng</a>
+        <a href="#cach-hoc" class="transition hover:text-primary-600">Cách học</a>
+        <a href="#hoi-dap" class="transition hover:text-primary-600">Hỏi đáp</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <a href="/login" class="btn-outline hidden px-5 py-2 sm:inline-flex">Đăng nhập</a>
+        <a href="/register" class="btn-primary hidden px-5 py-2 sm:inline-flex">Bắt đầu miễn phí</a>
+        <button id="menu-toggle" type="button" class="icon-btn h-10 w-10 bg-transparent text-ink-900 md:hidden" aria-label="Mở menu" aria-expanded="false" aria-controls="mobile-menu">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="mobile-menu" class="hidden border-t border-border bg-surface md:hidden">
+      <nav class="container-x flex flex-col gap-1 py-4 text-sm font-medium" aria-label="Điều hướng di động">
+        <a href="#tinh-nang" class="rounded-xl px-3 py-2 hover:bg-primary-50 hover:text-primary-600">Tính năng</a>
+        <a href="#cach-hoc" class="rounded-xl px-3 py-2 hover:bg-primary-50 hover:text-primary-600">Cách học</a>
+        <a href="#hoi-dap" class="rounded-xl px-3 py-2 hover:bg-primary-50 hover:text-primary-600">Hỏi đáp</a>
+        <div class="mt-2 grid grid-cols-2 gap-2">
+          <a href="/login" class="btn-outline">Đăng nhập</a>
+          <a href="/register" class="btn-primary">Bắt đầu miễn phí</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================= 2. HERO ================= -->
+    <section class="overflow-x-clip bg-surface pt-16 md:pt-24">
+      <div class="container-x text-center">
+        <span class="pill reveal">
+          <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3l1.9 5.8L20 10l-5 3.6L16.5 20 12 16.6 7.5 20 9 13.6 4 10l6.1-1.2z"/></svg>
+          Học từ vựng thông minh
+        </span>
+        <h1 class="reveal mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl md:text-6xl">
+          Nhớ 20 từ tiếng Anh mỗi ngày với <span class="text-primary-600">Flashcard</span>
+        </h1>
+        <p class="reveal mx-auto mt-5 max-w-xl text-base text-ink-500 md:text-lg">
+          Tự xây kho từ vựng của riêng bạn, học từ mới bằng thẻ có phát âm và ôn lại đúng lúc sắp quên nhờ thuật toán SM-2.
+        </p>
+        <div class="reveal mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <a href="/register" class="btn-primary w-full sm:w-auto">
+            Bắt đầu miễn phí
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a href="#cach-hoc" class="btn-outline w-full sm:w-auto">Xem cách học</a>
+        </div>
+      </div>
+
+      <!-- Mockup dashboard trên nền gradient xanh -->
+      <div class="container-x reveal relative mt-14 pb-20 md:mt-16 md:pb-28">
+        <div class="relative">
+          <div class="absolute inset-x-6 bottom-0 top-10 rounded-3xl bg-primary-600/30 blur-3xl" aria-hidden="true"></div>
+          <div class="relative rounded-3xl bg-gradient-to-br from-primary-600 to-primary-700 p-2 sm:p-4 md:p-6">
+            <div class="overflow-hidden rounded-2xl bg-surface shadow-xl shadow-primary-600/10" data-mount="dashboard" aria-hidden="true"></div>
+          </div>
+
+          <!-- Thẻ nổi (chỉ hiện ở màn lớn để không gây cuộn ngang) -->
+          <div class="animate-float absolute -left-8 top-1/3 hidden items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-left shadow-xl shadow-primary-600/10 lg:flex" aria-hidden="true">
+            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-success/10 text-success">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </span>
+            <div>
+              <p class="text-sm font-semibold">Đúng rồi! beautiful</p>
+              <p class="font-mono text-xs text-ink-500">/ˈbjuːtɪfəl/ · đẹp</p>
+            </div>
+          </div>
+          <div class="animate-float absolute -right-8 bottom-24 hidden items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-left shadow-xl shadow-primary-600/10 [animation-delay:1.2s] lg:flex" aria-hidden="true">
+            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-stat-pink/10 text-stat-pink">
+              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2c1 3.5 5 5.6 5 10.5A5 5 0 0 1 7 12.5c0-2 1-3.4 2-4.5.2 1.6 1 2.6 2 3 0-3.2-.3-6 1-9z"/></svg>
+            </span>
+            <div>
+              <p class="text-sm font-semibold">Streak 7 ngày</p>
+              <p class="text-xs text-ink-500">Giữ lửa mỗi ngày</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 3. VẤN ĐỀ ================= -->
+    <section class="section bg-canvas">
+      <div class="container-x text-center">
+        <span class="pill reveal">Vấn đề</span>
+        <h2 class="section-title reveal mt-4">Học trước <span class="text-primary-600">quên sau</span>?</h2>
+        <p class="section-desc reveal">Nếu bạn từng gặp những điều này khi học từ vựng, VocabMaster được làm ra cho bạn.</p>
+        <ul class="reveal mx-auto mt-10 flex max-w-3xl flex-wrap justify-center gap-3">
+          <li class="inline-flex items-center gap-2 rounded-full border border-danger/20 bg-surface px-4 py-2 text-sm font-medium text-ink-700 shadow-sm"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-danger/10 text-danger">✕</span>Học xong vài hôm là quên</li>
+          <li class="inline-flex items-center gap-2 rounded-full border border-danger/20 bg-surface px-4 py-2 text-sm font-medium text-ink-700 shadow-sm"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-danger/10 text-danger">✕</span>Không biết phát âm đúng</li>
+          <li class="inline-flex items-center gap-2 rounded-full border border-danger/20 bg-surface px-4 py-2 text-sm font-medium text-ink-700 shadow-sm"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-danger/10 text-danger">✕</span>Không có lộ trình rõ ràng</li>
+          <li class="inline-flex items-center gap-2 rounded-full border border-danger/20 bg-surface px-4 py-2 text-sm font-medium text-ink-700 shadow-sm"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-danger/10 text-danger">✕</span>Không biết khi nào cần ôn lại</li>
+          <li class="inline-flex items-center gap-2 rounded-full border border-danger/20 bg-surface px-4 py-2 text-sm font-medium text-ink-700 shadow-sm"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-danger/10 text-danger">✕</span>Chép từ vào sổ rồi bỏ đó</li>
+          <li class="inline-flex items-center gap-2 rounded-full border border-danger/20 bg-surface px-4 py-2 text-sm font-medium text-ink-700 shadow-sm"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-danger/10 text-danger">✕</span>Không thấy mình tiến bộ</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================= 4. GIẢI PHÁP ================= -->
+    <section id="tinh-nang" class="section scroll-mt-16 bg-surface">
+      <div class="container-x">
+        <div class="text-center">
+          <span class="pill reveal">Giải pháp</span>
+          <h2 class="section-title reveal mt-4">Học đúng cách để <span class="text-primary-600">nhớ lâu</span></h2>
+          <p class="section-desc reveal">Ba thứ cốt lõi giúp bạn biến từ mới thành từ đã thuộc.</p>
+        </div>
+
+        <div class="mt-12 grid gap-6 md:grid-cols-3">
+          <!-- Flashcard (lật được, phát âm được) -->
+          <article class="card reveal overflow-hidden">
+            <div class="flex h-56 items-center justify-center bg-canvas p-6">
+              <div class="flip w-full max-w-[220px]" id="mini-flashcard">
+                <div class="flip-inner relative h-36">
+                  <button type="button" class="flip-face absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-border bg-surface shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40" data-flip aria-label="Lật thẻ để xem nghĩa">
+                    <span class="text-2xl font-bold">hello</span>
+                    <span class="mt-1 font-mono text-sm text-ink-500">/həˈləʊ/</span>
+                    <span class="mt-2 text-xs text-ink-400">Bấm hoặc nhấn Space để lật</span>
+                  </button>
+                  <button type="button" class="flip-face flip-back absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-primary-600 to-primary-700 text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40" data-flip aria-label="Lật lại mặt trước">
+                    <span class="text-xl font-semibold">xin chào</span>
+                    <span class="mt-2 text-xs text-primary-100">Bấm để lật lại</span>
+                  </button>
+                </div>
+                <div class="mt-3 flex justify-center">
+                  <button type="button" class="icon-btn h-10 w-10" data-speak="hello" aria-label="Nghe phát âm từ hello">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H3v6h3l5 4V5zM15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-lg font-semibold">Flashcard có phát âm</h3>
+              <p class="mt-2 text-sm text-ink-500">Mặt trước là từ và phiên âm, tự đọc to khi thẻ hiện ra. Lật thẻ để xem nghĩa tiếng Việt.</p>
+            </div>
+          </article>
+
+          <!-- SM-2 -->
+          <article class="card reveal overflow-hidden [transition-delay:100ms]">
+            <div class="flex h-56 items-center justify-center bg-canvas p-6">
+              <div class="w-full max-w-[240px] rounded-2xl border border-border bg-surface p-4 shadow-sm">
+                <p class="text-xs font-semibold text-ink-700">Lịch ôn khi trả lời đúng liên tiếp</p>
+                <div class="mt-3 flex h-24 items-end gap-2" aria-hidden="true">
+                  <div class="flex flex-1 flex-col items-center gap-1"><div class="h-[8%] w-full rounded-t-md bg-primary-200"></div></div>
+                  <div class="flex flex-1 flex-col items-center gap-1"><div class="h-[16%] w-full rounded-t-md bg-primary-300"></div></div>
+                  <div class="flex flex-1 flex-col items-center gap-1"><div class="h-[30%] w-full rounded-t-md bg-primary-600/70"></div></div>
+                  <div class="flex flex-1 flex-col items-center gap-1"><div class="h-[55%] w-full rounded-t-md bg-primary-600"></div></div>
+                  <div class="flex flex-1 flex-col items-center gap-1"><div class="h-full w-full rounded-t-md bg-success"></div></div>
+                </div>
+                <div class="mt-1 grid grid-cols-5 text-center text-[10px] text-ink-500">
+                  <span>1 ngày</span><span>3 ngày</span><span>8 ngày</span><span>20 ngày</span><span class="font-semibold text-success">Thuộc</span>
+                </div>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-lg font-semibold">Ôn tập thông minh SM-2</h3>
+              <p class="mt-2 text-sm text-ink-500">Nhớ tốt thì khoảng cách ôn giãn dần, quên thì ôn lại ngay hôm sau. Bạn chỉ ôn đúng những từ cần ôn.</p>
+            </div>
+          </article>
+
+          <!-- Tiến độ -->
+          <article class="card reveal overflow-hidden [transition-delay:200ms]">
+            <div class="flex h-56 items-center justify-center bg-canvas p-6">
+              <div class="w-full max-w-[240px] rounded-2xl border border-border bg-surface p-4 shadow-sm">
+                <div class="flex items-center justify-between">
+                  <p class="text-xs font-semibold text-ink-700">7 ngày qua</p>
+                  <span class="rounded-full bg-stat-pink/10 px-2 py-0.5 text-[10px] font-semibold text-stat-pink">Streak 7</span>
+                </div>
+                <div class="mt-3 flex h-20 items-end gap-1.5" aria-hidden="true">
+                  <div class="h-[45%] flex-1 rounded-t-md bg-primary-600"></div>
+                  <div class="h-[70%] flex-1 rounded-t-md bg-primary-600"></div>
+                  <div class="h-[55%] flex-1 rounded-t-md bg-primary-600"></div>
+                  <div class="h-[90%] flex-1 rounded-t-md bg-primary-600"></div>
+                  <div class="h-[35%] flex-1 rounded-t-md bg-primary-600"></div>
+                  <div class="h-[80%] flex-1 rounded-t-md bg-primary-600"></div>
+                  <div class="h-full flex-1 rounded-t-md bg-primary-600"></div>
+                </div>
+                <div class="mt-1 grid grid-cols-7 text-center text-[10px] text-ink-400"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-lg font-semibold">Theo dõi tiến độ</h3>
+              <p class="mt-2 text-sm text-ink-500">Xem số từ đã học, đã ôn, đã thuộc và chuỗi ngày học liên tục ngay trên trang tổng quan.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 5. KHỐI 2 CỘT XEN KẼ ================= -->
+    <section id="cach-hoc" class="section scroll-mt-16 bg-canvas">
+      <div class="container-x space-y-24 md:space-y-32">
+
+        <!-- 5a. Thêm từ nhanh: chữ trái, mock phải -->
+        <div class="grid items-center gap-10 md:grid-cols-2 md:gap-16">
+          <div class="reveal">
+            <span class="pill">Thêm từ nhanh</span>
+            <h3 class="mt-4 text-2xl font-bold md:text-3xl">Xây kho từ <span class="text-primary-600">theo cách của bạn</span></h3>
+            <p class="mt-4 text-ink-500">Gõ từng từ khi gặp, hoặc nhập cả danh sách từ file Excel. Từ đã có trong kho sẽ không bị thêm lần nữa.</p>
+            <ul class="mt-6 space-y-3">
+              <li class="check-item"><span class="check-icon"><svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>Form 3 ô: Từ mới, Phiên âm, Ngữ nghĩa – nhấn Enter là lưu</li>
+              <li class="check-item"><span class="check-icon"><svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>Báo trùng ngay khi gõ, kèm nghĩa đang lưu</li>
+              <li class="check-item"><span class="check-icon"><svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>Import file .xlsx / .xls tối đa 5MB, có file mẫu để tải</li>
+              <li class="check-item"><span class="check-icon"><svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>Báo rõ số từ thêm mới, số từ trùng và dòng bị lỗi</li>
+            </ul>
+          </div>
+          <div class="reveal space-y-4" aria-hidden="true">
+            <div class="card p-5 sm:p-6">
+              <p class="font-semibold">Thêm từ mới</p>
+              <div class="mt-4 space-y-3 text-sm">
+                <div>
+                  <span class="mb-1 block text-xs font-medium text-ink-500">Từ mới *</span>
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 rounded-xl border border-danger bg-surface px-3 py-2.5">beautiful</div>
+                    <span class="icon-btn h-10 w-10"><svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H3v6h3l5 4V5zM15.5 8.5a5 5 0 010 7"/></svg></span>
+                  </div>
+                  <div class="mt-2 rounded-xl bg-danger/10 px-3 py-2 text-xs text-danger">
+                    Từ này đã có trong kho · <span class="font-mono">/ˈbjuːtɪfəl/</span> · đẹp, xinh đẹp
+                  </div>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <div><span class="mb-1 block text-xs font-medium text-ink-500">Phiên âm</span><div class="rounded-xl border border-border px-3 py-2.5 font-mono text-ink-400">/…/</div></div>
+                  <div><span class="mb-1 block text-xs font-medium text-ink-500">Ngữ nghĩa *</span><div class="rounded-xl border border-border px-3 py-2.5 text-ink-400">Nhập nghĩa…</div></div>
+                </div>
+                <div class="btn-primary w-full opacity-50">Lưu</div>
+              </div>
+            </div>
+            <div class="card p-5 sm:p-6">
+              <div class="flex items-center justify-between gap-2">
+                <p class="font-semibold">Kết quả import</p>
+                <span class="truncate text-xs text-ink-500">tu-vung-unit-1.xlsx</span>
+              </div>
+              <div class="mt-4 grid grid-cols-3 gap-2 text-center">
+                <div class="rounded-xl bg-success/10 p-3"><p class="text-xl font-bold text-success">48</p><p class="text-[11px] text-ink-500">Thêm mới</p></div>
+                <div class="rounded-xl bg-primary-50 p-3"><p class="text-xl font-bold text-primary-600">3</p><p class="text-[11px] text-ink-500">Trùng, bỏ qua</p></div>
+                <div class="rounded-xl bg-danger/10 p-3"><p class="text-xl font-bold text-danger">1</p><p class="text-[11px] text-ink-500">Dòng lỗi</p></div>
+              </div>
+              <p class="mt-3 text-xs text-ink-500">Dòng 17: thiếu Từ mới</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5b. Hai cách ôn tập: mock trái, chữ phải (mock tương tác được) -->
+        <div class="grid items-center gap-10 md:grid-cols-2 md:gap-16">
+          <div class="reveal md:order-2">
+            <span class="pill">Hai cách ôn tập</span>
+            <h3 class="mt-4 text-2xl font-bold md:text-3xl">Nhớ cả <span class="text-primary-600">nghĩa</span> lẫn <span class="text-primary-600">cách đọc</span></h3>
+            <p class="mt-4 text-ink-500">Bài trắc nghiệm và bài nghe – gõ xen kẽ ngẫu nhiên. Sau mỗi câu bạn thấy ngay đúng sai, đáp án, phiên âm và nghe lại từ.</p>
+            <ul class="mt-6 space-y-3">
+              <li class="check-item"><span class="check-icon"><svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>Trắc nghiệm: xem nghĩa, chọn 1 trong 4 từ (phím 1–4)</li>
+              <li class="check-item"><span class="check-icon"><svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>Nghe – gõ: nghe phát âm rồi gõ lại, có Nghe lại và Gợi ý</li>
+              <li class="check-item"><span class="check-icon"><svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>Không phân biệt hoa thường, bỏ qua khoảng trắng thừa</li>
+              <li class="check-item"><span class="check-icon"><svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>Cuối lượt có tổng kết và danh sách từ trả lời sai</li>
+            </ul>
+            <p class="mt-6 text-sm text-ink-400">Thử ngay hai bài mẫu bên cạnh.</p>
+          </div>
+
+          <div class="reveal space-y-4 md:order-1">
+            <!-- Trắc nghiệm -->
+            <div class="card p-5 sm:p-6" id="quiz">
+              <div class="flex items-center justify-between">
+                <span class="pill">Trắc nghiệm</span>
+                <button type="button" class="text-xs font-medium text-primary-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40" data-quiz-reset hidden>Làm lại</button>
+              </div>
+              <p class="mt-4 text-sm text-ink-500">Chọn từ có nghĩa:</p>
+              <p class="text-xl font-bold">đẹp, xinh đẹp</p>
+              <div class="mt-4 space-y-2">
+                <button type="button" data-quiz-option class="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-left text-sm font-medium transition hover:border-primary-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40"><span class="flex h-7 w-7 items-center justify-center rounded-lg bg-canvas text-xs font-bold text-ink-500">1</span>wonderful</button>
+                <button type="button" data-quiz-option data-correct class="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-left text-sm font-medium transition hover:border-primary-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40"><span class="flex h-7 w-7 items-center justify-center rounded-lg bg-canvas text-xs font-bold text-ink-500">2</span>beautiful</button>
+                <button type="button" data-quiz-option class="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-left text-sm font-medium transition hover:border-primary-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40"><span class="flex h-7 w-7 items-center justify-center rounded-lg bg-canvas text-xs font-bold text-ink-500">3</span>careful</button>
+                <button type="button" data-quiz-option class="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-left text-sm font-medium transition hover:border-primary-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40"><span class="flex h-7 w-7 items-center justify-center rounded-lg bg-canvas text-xs font-bold text-ink-500">4</span>powerful</button>
+              </div>
+              <p class="mt-3 hidden rounded-xl px-3 py-2 text-sm" data-quiz-feedback role="status"></p>
+            </div>
+
+            <!-- Nghe – gõ -->
+            <form class="card p-5 text-center sm:p-6" id="listen" autocomplete="off">
+              <div class="flex justify-start"><span class="pill">Nghe – gõ</span></div>
+              <button type="button" class="icon-btn mx-auto mt-4 h-16 w-16" data-speak="beautiful" aria-label="Phát âm từ cần gõ">
+                <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H3v6h3l5 4V5zM15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>
+              </button>
+              <p class="mt-3 text-sm text-ink-500">Nghe và gõ lại từ bạn nghe được</p>
+              <label for="listen-input" class="sr-only">Từ bạn nghe được</label>
+              <input id="listen-input" type="text" spellcheck="false" autocapitalize="off" placeholder="Gõ từ ở đây…"
+                     class="mx-auto mt-3 block w-full max-w-xs rounded-2xl border border-border bg-canvas px-4 py-3 text-center text-lg font-semibold outline-none transition focus:border-primary-600 focus:ring-2 focus:ring-primary-600/40" />
+              <p class="mt-2 min-h-[1.25rem] text-xs text-ink-500" data-listen-hint></p>
+              <div class="mt-2 flex flex-wrap justify-center gap-2">
+                <button type="button" class="btn-outline px-4 py-2" data-speak="beautiful">Nghe lại</button>
+                <button type="button" class="btn-outline px-4 py-2" data-listen-hint-btn>Gợi ý</button>
+                <button type="submit" class="btn-primary px-4 py-2">Kiểm tra</button>
+              </div>
+              <p class="mt-3 hidden rounded-xl px-3 py-2 text-sm" data-listen-feedback role="status"></p>
+            </form>
+          </div>
+        </div>
+
+        <!-- 5c. Dashboard & streak: chữ trái, mock phải -->
+        <div class="grid items-center gap-10 md:grid-cols-2 md:gap-16">
+          <div class="reveal">
+            <span class="pill">Dashboard và streak</span>
+            <h3 class="mt-4 text-2xl font-bold md:text-3xl">Nhìn thấy mình <span class="text-primary-600">tiến bộ</span> mỗi ngày</h3>
+            <p class="mt-4 text-ink-500">Trang tổng quan cho biết hôm nay còn bao nhiêu từ cần học, cần ôn và bạn đã giữ chuỗi ngày học được bao lâu.</p>
+            <ul class="mt-6 space-y-3">
+              <li class="check-item"><span class="check-icon"><svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>Từ mới hôm nay, cần ôn, đã thuộc và streak</li>
+              <li class="check-item"><span class="check-icon"><svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>Biểu đồ số từ đã học và đã ôn trong 7 hoặc 30 ngày</li>
+              <li class="check-item"><span class="check-icon"><svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>Tổng kho: đã thuộc, đang học, chưa học</li>
+              <li class="check-item"><span class="check-icon"><svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>Mục tiêu mỗi ngày chọn được 10, 20, 30 hoặc 50 từ</li>
+            </ul>
+          </div>
+          <div class="reveal" aria-hidden="true">
+            <div class="card p-5 sm:p-6">
+              <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-2xl border border-border p-4"><span class="flex h-9 w-9 items-center justify-center rounded-full bg-stat-teal/10 text-stat-teal">📖</span><p class="mt-3 text-2xl font-bold">12<span class="text-sm font-medium text-ink-400">/20</span></p><p class="text-xs text-ink-500">Từ mới hôm nay</p></div>
+                <div class="rounded-2xl border border-border p-4"><span class="flex h-9 w-9 items-center justify-center rounded-full bg-stat-pink/10 text-stat-pink">🔥</span><p class="mt-3 text-2xl font-bold">7 ngày</p><p class="text-xs text-ink-500">Streak</p></div>
+              </div>
+              <div class="mt-4 rounded-2xl bg-canvas p-4">
+                <p class="text-xs font-semibold text-ink-700">Chuỗi ngày học</p>
+                <div class="mt-3 grid grid-cols-7 gap-1.5 text-center text-[10px] text-ink-500">
+                  <div><div class="mx-auto mb-1 h-7 w-7 rounded-full bg-primary-600"></div>T2</div>
+                  <div><div class="mx-auto mb-1 h-7 w-7 rounded-full bg-primary-600"></div>T3</div>
+                  <div><div class="mx-auto mb-1 h-7 w-7 rounded-full bg-primary-600"></div>T4</div>
+                  <div><div class="mx-auto mb-1 h-7 w-7 rounded-full bg-primary-600"></div>T5</div>
+                  <div><div class="mx-auto mb-1 h-7 w-7 rounded-full bg-primary-600"></div>T6</div>
+                  <div><div class="mx-auto mb-1 h-7 w-7 rounded-full bg-primary-600"></div>T7</div>
+                  <div><div class="mx-auto mb-1 h-7 w-7 rounded-full bg-primary-600 ring-4 ring-primary-200"></div>CN</div>
+                </div>
+              </div>
+              <div class="mt-4">
+                <div class="flex items-center justify-between text-xs"><span class="font-semibold text-ink-700">Tổng kho · 200 từ</span></div>
+                <div class="mt-2 flex h-3 overflow-hidden rounded-full bg-border">
+                  <div class="bg-success" style="width:43%"></div>
+                  <div class="bg-primary-600" style="width:32%"></div>
+                </div>
+                <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-500">
+                  <span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-success"></span>Đã thuộc 86</span>
+                  <span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-primary-600"></span>Đang học 64</span>
+                  <span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-border"></span>Chưa học 50</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 6. DEMO ================= -->
+    <section class="section overflow-x-clip bg-primary-700">
+      <div class="container-x text-center">
+        <span class="pill reveal bg-surface/10 text-surface">Xem trước</span>
+        <h2 class="reveal mt-4 text-3xl font-bold text-white md:text-4xl">Mọi thứ trong một màn hình</h2>
+        <p class="reveal mx-auto mt-4 max-w-xl text-primary-100">Mở app là biết hôm nay cần học gì. Dùng tốt trên điện thoại lẫn máy tính.</p>
+        <div class="reveal relative mt-12">
+          <div class="absolute inset-x-10 inset-y-6 rounded-3xl bg-primary-300/30 blur-3xl" aria-hidden="true"></div>
+          <div class="relative overflow-hidden rounded-3xl border border-surface/20 bg-surface shadow-2xl" data-mount="dashboard" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 7. SỐ LIỆU ================= -->
+    <section class="section bg-surface">
+      <div class="container-x">
+        <div class="text-center">
+          <span class="pill reveal">Con số</span>
+          <h2 class="section-title reveal mt-4">Đơn giản, <span class="text-primary-600">đủ dùng</span> mỗi ngày</h2>
+        </div>
+        <div class="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="reveal rounded-2xl bg-stat-teal p-6 text-white shadow-sm"><p class="text-4xl font-bold">20</p><p class="mt-2 text-sm text-white/90">từ mới mỗi ngày (đổi được 10 / 20 / 30 / 50)</p></div>
+          <div class="reveal rounded-2xl bg-stat-violet p-6 text-white shadow-sm [transition-delay:80ms]"><p class="text-4xl font-bold">2</p><p class="mt-2 text-sm text-white/90">dạng ôn tập: trắc nghiệm và nghe – gõ</p></div>
+          <div class="reveal rounded-2xl bg-stat-pink p-6 text-white shadow-sm [transition-delay:160ms]"><p class="text-4xl font-bold">SM-2</p><p class="mt-2 text-sm text-white/90">thuật toán lặp lại ngắt quãng</p></div>
+          <div class="reveal rounded-2xl bg-stat-blue p-6 text-white shadow-sm [transition-delay:240ms]"><p class="text-4xl font-bold">100%</p><p class="mt-2 text-sm text-white/90">miễn phí</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TODO: Section nhận xét người dùng – chỉ thêm khi có nhận xét thật (CLAUDE.md §8.3). -->
+
+    <!-- ================= 8. FAQ ================= -->
+    <section id="hoi-dap" class="section scroll-mt-16 bg-canvas">
+      <div class="container-x">
+        <div class="text-center">
+          <span class="pill reveal">Hỏi đáp</span>
+          <h2 class="section-title reveal mt-4">Câu hỏi <span class="text-primary-600">thường gặp</span></h2>
+        </div>
+        <div class="mx-auto mt-12 max-w-3xl space-y-3" id="faq">
+          <!-- Mỗi mục: button + panel; JS lo đóng/mở và đổi icon +/− -->
+          <div class="card reveal">
+            <button type="button" class="flex w-full items-center justify-between gap-4 rounded-2xl px-5 py-4 text-left font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40" aria-expanded="false" data-faq>
+              File Excel cần định dạng như thế nào?
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-lg text-primary-600" data-faq-icon>+</span>
+            </button>
+            <div class="grid grid-rows-[0fr] transition-all duration-300" data-faq-panel>
+              <div class="overflow-hidden"><p class="px-5 pb-5 text-sm leading-relaxed text-ink-500">File .xlsx hoặc .xls, tối đa 5MB, gồm 3 cột theo thứ tự <b>Từ mới | Phiên âm | Ngữ nghĩa</b>, dòng 1 là tiêu đề. Dòng trống hoặc thiếu Từ mới sẽ được bỏ qua; từ lặp lại trong file chỉ lấy dòng đầu tiên; từ đã có trong kho cũng không bị thêm lại. Bạn có thể tải file mẫu ở trang Thêm từ.</p></div>
+            </div>
+          </div>
+          <div class="card reveal">
+            <button type="button" class="flex w-full items-center justify-between gap-4 rounded-2xl px-5 py-4 text-left font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40" aria-expanded="false" data-faq>
+              App có phát âm từ không?
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-lg text-primary-600" data-faq-icon>+</span>
+            </button>
+            <div class="grid grid-rows-[0fr] transition-all duration-300" data-faq-panel>
+              <div class="overflow-hidden"><p class="px-5 pb-5 text-sm leading-relaxed text-ink-500">Có. App dùng giọng đọc tiếng Anh (Mỹ) có sẵn trong trình duyệt. Thẻ flashcard tự đọc khi hiện ra và bạn bấm nút loa để nghe lại. Nếu trình duyệt không hỗ trợ đọc, bạn vẫn học bình thường, chỉ là không có âm thanh.</p></div>
+            </div>
+          </div>
+          <div class="card reveal">
+            <button type="button" class="flex w-full items-center justify-between gap-4 rounded-2xl px-5 py-4 text-left font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40" aria-expanded="false" data-faq>
+              SM-2 là gì?
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-lg text-primary-600" data-faq-icon>+</span>
+            </button>
+            <div class="grid grid-rows-[0fr] transition-all duration-300" data-faq-panel>
+              <div class="overflow-hidden"><p class="px-5 pb-5 text-sm leading-relaxed text-ink-500">SM-2 là thuật toán lặp lại ngắt quãng. Mỗi lần bạn trả lời đúng, lần ôn tiếp theo được dời xa hơn: 1 ngày, rồi 3 ngày, rồi nhân với hệ số dễ nhớ của từ (ban đầu 2,5), ví dụ 8 ngày, 20 ngày… Trả lời sai thì từ quay lại ôn sau 1 ngày. Khi khoảng cách ôn đạt từ 21 ngày trở lên, từ được tính là đã thuộc.</p></div>
+            </div>
+          </div>
+          <div class="card reveal">
+            <button type="button" class="flex w-full items-center justify-between gap-4 rounded-2xl px-5 py-4 text-left font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40" aria-expanded="false" data-faq>
+              Mỗi ngày tôi học bao nhiêu từ?
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-lg text-primary-600" data-faq-icon>+</span>
+            </button>
+            <div class="grid grid-rows-[0fr] transition-all duration-300" data-faq-panel>
+              <div class="overflow-hidden"><p class="px-5 pb-5 text-sm leading-relaxed text-ink-500">Mặc định 20 từ mới mỗi ngày, bạn đổi được thành 10, 30 hoặc 50 trong Cài đặt. Học xong vẫn có thể bấm "Học thêm". Từ mới được lấy theo thứ tự bạn đã thêm vào kho.</p></div>
+            </div>
+          </div>
+          <div class="card reveal">
+            <button type="button" class="flex w-full items-center justify-between gap-4 rounded-2xl px-5 py-4 text-left font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40" aria-expanded="false" data-faq>
+              Hai dạng ôn tập khác nhau thế nào?
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-lg text-primary-600" data-faq-icon>+</span>
+            </button>
+            <div class="grid grid-rows-[0fr] transition-all duration-300" data-faq-panel>
+              <div class="overflow-hidden"><p class="px-5 pb-5 text-sm leading-relaxed text-ink-500">Trắc nghiệm cho bạn xem nghĩa và chọn đúng từ trong 4 đáp án. Nghe – gõ đọc từ lên để bạn gõ lại, có nút Nghe lại và Gợi ý chữ cái đầu. Hai dạng xen kẽ ngẫu nhiên; nếu kho có dưới 4 từ thì chỉ dùng nghe – gõ.</p></div>
+            </div>
+          </div>
+          <div class="card reveal">
+            <button type="button" class="flex w-full items-center justify-between gap-4 rounded-2xl px-5 py-4 text-left font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40" aria-expanded="false" data-faq>
+              Tôi dùng trên điện thoại được không?
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-lg text-primary-600" data-faq-icon>+</span>
+            </button>
+            <div class="grid grid-rows-[0fr] transition-all duration-300" data-faq-panel>
+              <div class="overflow-hidden"><p class="px-5 pb-5 text-sm leading-relaxed text-ink-500">Được. Giao diện được làm ưu tiên cho điện thoại, mở bằng trình duyệt là dùng, không cần cài thêm gì. Trên máy tính bạn còn dùng được phím tắt: Space lật thẻ, 1–4 chọn đáp án, Enter để gửi.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 9. CTA ================= -->
+    <section class="section bg-surface">
+      <div class="container-x">
+        <div class="reveal grid items-center gap-10 overflow-hidden rounded-3xl bg-primary-50 p-8 md:grid-cols-2 md:p-14">
+          <div>
+            <h2 class="text-3xl font-bold leading-tight md:text-4xl">Bắt đầu xây kho từ vựng <span class="text-primary-600">của bạn</span></h2>
+            <p class="mt-4 text-ink-500">Tạo tài khoản, thêm vài từ đầu tiên và học thẻ đầu tiên ngay hôm nay.</p>
+            <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+              <a href="/register" class="btn-primary">Đăng ký miễn phí</a>
+              <a href="/login" class="btn-outline">Tôi đã có tài khoản</a>
+            </div>
+          </div>
+          <!-- Ảnh chụp app: màn Học từ mới -->
+          <div class="mx-auto w-full max-w-sm rounded-3xl border border-border bg-surface p-5 shadow-xl shadow-primary-600/10" aria-hidden="true">
+            <div class="flex items-center justify-between text-xs text-ink-500"><span>Học từ mới</span><span class="font-semibold text-ink-700">7/20</span></div>
+            <div class="mt-2 h-2 overflow-hidden rounded-full bg-primary-100"><div class="h-full rounded-full bg-primary-600" style="width:35%"></div></div>
+            <div class="mt-5 rounded-3xl border border-border p-8 text-center">
+              <p class="text-4xl font-bold">learn</p>
+              <p class="mt-2 font-mono text-ink-500">/lɜːn/</p>
+              <span class="icon-btn mt-4 h-11 w-11"><svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H3v6h3l5 4V5zM15.5 8.5a5 5 0 010 7"/></svg></span>
+            </div>
+            <div class="mt-4 grid grid-cols-2 gap-3">
+              <span class="btn-outline">Học lại</span>
+              <span class="btn-primary">Đã nhớ</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= 10. FOOTER ================= -->
+  <footer class="border-t border-border bg-surface">
+    <div class="container-x grid gap-10 py-14 sm:grid-cols-2 md:grid-cols-4">
+      <div class="sm:col-span-2">
+        <a href="#" class="flex items-center gap-2 text-lg font-bold">
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-600 to-primary-700 text-white">V</span>
+          VocabMaster
+        </a>
+        <p class="mt-4 max-w-sm text-sm text-ink-500">Học từ vựng tiếng Anh bằng flashcard cho người Việt mới bắt đầu. Tự xây kho từ, học mỗi ngày, ôn đúng lúc.</p>
+      </div>
+      <div>
+        <p class="text-sm font-semibold">Sản phẩm</p>
+        <ul class="mt-4 space-y-2 text-sm text-ink-500">
+          <li><a href="#tinh-nang" class="hover:text-primary-600">Tính năng</a></li>
+          <li><a href="#cach-hoc" class="hover:text-primary-600">Cách học</a></li>
+          <li><a href="#hoi-dap" class="hover:text-primary-600">Hỏi đáp</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-sm font-semibold">Tài khoản</p>
+        <ul class="mt-4 space-y-2 text-sm text-ink-500">
+          <li><a href="/login" class="hover:text-primary-600">Đăng nhập</a></li>
+          <li><a href="/register" class="hover:text-primary-600">Đăng ký</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-border">
+      <p class="container-x py-6 text-center text-xs text-ink-500 sm:text-left">© <span id="year">2026</span> VocabMaster. Mọi quyền được bảo lưu.</p>
+    </div>
+  </footer>
+
+  <!-- ================= Mockup dashboard (dùng chung cho Hero và Demo) ================= -->
+  <template id="tpl-dashboard">
+    <div class="flex text-left">
+      <aside class="hidden w-60 shrink-0 flex-col border-r border-border bg-surface p-4 md:flex">
+        <div class="flex items-center gap-2 px-2 pb-5 font-bold">
+          <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary-600 to-primary-700 text-sm text-white">V</span>VocabMaster
+        </div>
+        <nav class="space-y-1 text-sm font-medium text-ink-500">
+          <div class="flex items-center gap-3 rounded-xl bg-primary-50 px-3 py-2.5 text-primary-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Tổng quan</div>
+          <div class="flex items-center gap-3 px-3 py-2.5"><svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg>Học từ mới</div>
+          <div class="flex items-center gap-3 px-3 py-2.5"><svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v6h6M20 20v-6h-6M5.5 15a7 7 0 0012 2.5L20 14M18.5 9A7 7 0 006.5 6.5L4 10"/></svg>Ôn tập</div>
+          <div class="flex items-center gap-3 px-3 py-2.5"><svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5v14zM4 19.5A2.5 2.5 0 006.5 22H20v-5"/></svg>Kho từ</div>
+          <div class="flex items-center gap-3 px-3 py-2.5"><svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 8v8M8 12h8"/></svg>Thêm từ</div>
+          <div class="flex items-center gap-3 px-3 py-2.5"><svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Cài đặt</div>
+        </nav>
+      </aside>
+
+      <div class="min-w-0 flex-1 bg-canvas p-4 sm:p-6">
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <p class="truncate font-bold sm:text-lg">Chào buổi sáng, Lan 👋</p>
+            <p class="truncate text-xs text-ink-500 sm:text-sm">Hôm nay còn 8 từ mới và 12 từ cần ôn.</p>
+          </div>
+          <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-600 text-sm font-semibold text-white">L</span>
+        </div>
+
+        <div class="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div class="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-stat-teal/10 text-stat-teal"><svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.5C10 5 7 4.5 4 5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5zM12 6.5V19"/></svg></span>
+            <p class="mt-3 text-2xl font-bold sm:text-3xl">12<span class="text-sm font-medium text-ink-400">/20</span></p>
+            <p class="text-xs text-ink-500">Từ mới hôm nay</p>
+          </div>
+          <div class="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-stat-violet/10 text-stat-violet"><svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v6h6M20 20v-6h-6M5.5 15a7 7 0 0012 2.5L20 14M18.5 9A7 7 0 006.5 6.5L4 10"/></svg></span>
+            <p class="mt-3 text-2xl font-bold sm:text-3xl">12</p>
+            <p class="text-xs text-ink-500">Cần ôn hôm nay</p>
+          </div>
+          <div class="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-stat-pink/10 text-stat-pink"><svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 12l3 3 5-6"/></svg></span>
+            <p class="mt-3 text-2xl font-bold sm:text-3xl">86</p>
+            <p class="text-xs text-ink-500">Đã thuộc</p>
+          </div>
+          <div class="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-stat-blue/10 text-stat-blue"><svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2c1 3.5 5 5.6 5 10.5A5 5 0 0 1 7 12.5c0-2 1-3.4 2-4.5.2 1.6 1 2.6 2 3 0-3.2-.3-6 1-9z"/></svg></span>
+            <p class="mt-3 text-2xl font-bold sm:text-3xl">7 <span class="text-sm font-medium text-ink-400">ngày</span></p>
+            <p class="text-xs text-ink-500">Streak</p>
+          </div>
+        </div>
+
+        <div class="mt-4 grid gap-4 lg:grid-cols-3">
+          <div class="rounded-2xl border border-border bg-surface p-4 shadow-sm sm:p-5 lg:col-span-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <p class="font-semibold">Hoạt động</p>
+              <div class="flex rounded-full bg-canvas p-1 text-xs font-medium">
+                <span class="rounded-full bg-surface px-3 py-1 text-primary-600 shadow-sm">7 ngày</span>
+                <span class="px-3 py-1 text-ink-500">30 ngày</span>
+              </div>
+            </div>
+            <div class="mt-2 flex gap-4 text-xs text-ink-500">
+              <span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-primary-600"></span>Đã học</span>
+              <span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-primary-200"></span>Đã ôn</span>
+            </div>
+            <div class="mt-4 flex h-36 items-end gap-2 sm:gap-3" data-chart></div>
+            <div class="mt-2 flex gap-2 text-center text-[10px] text-ink-400 sm:gap-3" data-chart-labels></div>
+          </div>
+
+          <div class="space-y-4">
+            <div class="rounded-2xl border border-border bg-surface p-4 shadow-sm sm:p-5">
+              <p class="font-semibold">Hôm nay</p>
+              <div class="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-1">
+                <span class="btn-primary py-3">Học từ mới</span>
+                <span class="btn-outline py-3">Ôn tập</span>
+              </div>
+            </div>
+            <div class="rounded-2xl border border-border bg-surface p-4 shadow-sm sm:p-5">
+              <p class="font-semibold">Tổng kho <span class="text-sm font-normal text-ink-500">· 200 từ</span></p>
+              <div class="mt-3 flex h-2.5 overflow-hidden rounded-full bg-border">
+                <div class="bg-success" style="width:43%"></div>
+                <div class="bg-primary-600" style="width:32%"></div>
+              </div>
+              <div class="mt-3 space-y-1 text-xs text-ink-500">
+                <p class="flex justify-between"><span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-success"></span>Đã thuộc</span><b class="text-ink-900">86</b></p>
+                <p class="flex justify-between"><span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-primary-600"></span>Đang học</span><b class="text-ink-900">64</b></p>
+                <p class="flex justify-between"><span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-border"></span>Chưa học</span><b class="text-ink-900">50</b></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    document.documentElement.classList.add('js')
+    document.getElementById('year').textContent = new Date().getFullYear()
+
+    // --- Phát âm (tương đương useSpeech(): kiểm tra trình duyệt có hỗ trợ không) ---
+    const speechSupported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window
+    function speak(text) {
+      if (!speechSupported) return
+      window.speechSynthesis.cancel()
+      const u = new SpeechSynthesisUtterance(text)
+      u.lang = 'en-US'
+      u.rate = 0.9
+      window.speechSynthesis.speak(u)
+    }
+    document.querySelectorAll('[data-speak]').forEach((btn) => {
+      if (!speechSupported) {
+        btn.disabled = true
+        btn.title = 'Trình duyệt của bạn không hỗ trợ phát âm'
+        return
+      }
+      btn.addEventListener('click', () => speak(btn.dataset.speak))
+    })
+
+    // --- Navbar: đổ bóng khi cuộn, menu di động ---
+    const navbar = document.getElementById('navbar')
+    window.addEventListener('scroll', () => navbar.classList.toggle('shadow-sm', window.scrollY > 8), { passive: true })
+    const menuBtn = document.getElementById('menu-toggle')
+    const menu = document.getElementById('mobile-menu')
+    menuBtn.addEventListener('click', () => {
+      const open = menu.classList.toggle('hidden') === false
+      menuBtn.setAttribute('aria-expanded', String(open))
+      menuBtn.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu')
+    })
+    menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => {
+      menu.classList.add('hidden')
+      menuBtn.setAttribute('aria-expanded', 'false')
+    }))
+
+    // --- Mockup dashboard: gắn vào Hero và Demo, vẽ biểu đồ cột ---
+    const tpl = document.getElementById('tpl-dashboard')
+    const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+    const learned = [14, 20, 18, 20, 9, 20, 12]
+    const reviewed = [10, 16, 12, 22, 8, 18, 12]
+    const max = Math.max(...learned, ...reviewed)
+    document.querySelectorAll('[data-mount="dashboard"]').forEach((el) => {
+      el.appendChild(tpl.content.cloneNode(true))
+      const chart = el.querySelector('[data-chart]')
+      const labels = el.querySelector('[data-chart-labels]')
+      days.forEach((d, i) => {
+        const group = document.createElement('div')
+        group.className = 'flex h-full flex-1 items-end gap-0.5 sm:gap-1'
+        group.innerHTML =
+          `<div class="flex-1 rounded-t-md bg-primary-600" style="height:${(learned[i] / max) * 100}%"></div>` +
+          `<div class="flex-1 rounded-t-md bg-primary-200" style="height:${(reviewed[i] / max) * 100}%"></div>`
+        chart.appendChild(group)
+        const label = document.createElement('span')
+        label.className = 'flex-1'
+        label.textContent = d
+        labels.appendChild(label)
+      })
+    })
+
+    // --- Flashcard mẫu: lật thẻ (Space/Enter hoạt động sẵn vì là <button>) ---
+    const mini = document.getElementById('mini-flashcard')
+    mini.querySelectorAll('[data-flip]').forEach((b) => b.addEventListener('click', () => {
+      mini.classList.toggle('is-flipped')
+      mini.querySelector(mini.classList.contains('is-flipped') ? '.flip-back' : '.flip-face').focus()
+    }))
+
+    // --- Trắc nghiệm mẫu ---
+    const quiz = document.getElementById('quiz')
+    const options = [...quiz.querySelectorAll('[data-quiz-option]')]
+    const quizFeedback = quiz.querySelector('[data-quiz-feedback]')
+    const quizReset = quiz.querySelector('[data-quiz-reset]')
+    const OK = ['border-success', 'bg-success/10']
+    const BAD = ['border-danger', 'bg-danger/10']
+    function answerQuiz(btn) {
+      if (btn.disabled) return
+      const correct = btn.hasAttribute('data-correct')
+      options.forEach((o) => { o.disabled = true; o.classList.remove('hover:border-primary-600') })
+      btn.classList.add(...(correct ? OK : BAD))
+      quiz.querySelector('[data-correct]').classList.add(...OK)
+      quizFeedback.className = `mt-3 rounded-xl px-3 py-2 text-sm ${correct ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`
+      quizFeedback.innerHTML = `<b>${correct ? 'Đúng rồi!' : 'Chưa đúng.'}</b> beautiful <span class="font-mono">/ˈbjuːtɪfəl/</span> – đẹp, xinh đẹp`
+      quizReset.hidden = false
+      speak('beautiful')
+    }
+    options.forEach((o) => o.addEventListener('click', () => answerQuiz(o)))
+    quizReset.addEventListener('click', () => {
+      options.forEach((o) => { o.disabled = false; o.classList.remove(...OK, ...BAD); o.classList.add('hover:border-primary-600') })
+      quizFeedback.className = 'mt-3 hidden'
+      quizReset.hidden = true
+    })
+    // Phím 1–4 chỉ có tác dụng khi bài trắc nghiệm đang nằm trong màn hình
+    let quizVisible = false
+    new IntersectionObserver(([e]) => { quizVisible = e.isIntersecting }, { threshold: 0.6 }).observe(quiz)
+    document.addEventListener('keydown', (e) => {
+      if (!quizVisible || /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return
+      const i = Number(e.key) - 1
+      if (i >= 0 && i < options.length) answerQuiz(options[i])
+    })
+
+    // --- Nghe – gõ mẫu ---
+    const listen = document.getElementById('listen')
+    const listenInput = document.getElementById('listen-input')
+    const listenFeedback = listen.querySelector('[data-listen-feedback]')
+    const ANSWER = 'beautiful'
+    listen.querySelector('[data-listen-hint-btn]').addEventListener('click', () => {
+      listen.querySelector('[data-listen-hint]').textContent = `Gợi ý: bắt đầu bằng chữ "${ANSWER[0]}"`
+      listenInput.focus()
+    })
+    listen.addEventListener('submit', (e) => {
+      e.preventDefault()
+      const value = listenInput.value.trim().replace(/\s+/g, ' ').toLowerCase()
+      if (!value) { listenInput.focus(); return }
+      const correct = value === ANSWER
+      listenInput.classList.toggle('border-success', correct)
+      listenInput.classList.toggle('border-danger', !correct)
+      listenFeedback.className = `mt-3 rounded-xl px-3 py-2 text-sm ${correct ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`
+      listenFeedback.innerHTML = `<b>${correct ? 'Đúng rồi!' : 'Chưa đúng.'}</b> beautiful <span class="font-mono">/ˈbjuːtɪfəl/</span> – đẹp, xinh đẹp`
+      speak(ANSWER)
+    })
+
+    // --- FAQ accordion: mở một mục, icon đổi +/− ---
+    const faqButtons = [...document.querySelectorAll('[data-faq]')]
+    function setFaq(btn, open) {
+      btn.setAttribute('aria-expanded', String(open))
+      btn.querySelector('[data-faq-icon]').textContent = open ? '−' : '+'
+      const panel = btn.nextElementSibling
+      panel.classList.toggle('grid-rows-[1fr]', open)
+      panel.classList.toggle('grid-rows-[0fr]', !open)
+    }
+    faqButtons.forEach((btn) => btn.addEventListener('click', () => {
+      const willOpen = btn.getAttribute('aria-expanded') !== 'true'
+      faqButtons.forEach((b) => setFaq(b, false))
+      setFaq(btn, willOpen)
+    }))
+
+    // --- Hiệu ứng xuất hiện khi cuộn ---
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target) }
+    }), { threshold: 0.1, rootMargin: '0px 0px -40px 0px' })
+    document.querySelectorAll('.reveal').forEach((el) => io.observe(el))
+  </script>
+</body>
+</html>

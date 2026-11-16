@@ -1,0 +1,168 @@
+<script setup>
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { libraryApi } from '@/api/library'
+import { getErrorMessage } from '@/api/errors'
+import { useAuthStore } from '@/stores/auth'
+import AlertBox from '@/components/ui/AlertBox.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
+import t from '@/locales/vi'
+
+// Kho từ vựng trên trang Tổng quan.
+// - Trên: "Kho từ vựng của tôi" = toàn bộ từ trong kho (tự thêm + đã học từ các cấp độ). Bấm vào: từ mới lấy từ
+//   các từ tự thêm, phần ôn vẫn gồm mọi từ đã học.
+// - Dưới: các cấp độ A1–C2. Bấm một cấp: từ mới lấy ngẫu nhiên từ cấp đó; tiến độ từng cấp giữ nguyên.
+// Chọn xong thì vào Luyện tập ngay. Cấp đang làm nguồn từ mới chỉ được tô viền nhẹ.
+const auth = useAuthStore()
+const router = useRouter()
+
+const overview = ref(null)
+const loading = ref(true)
+const error = ref('')
+const busyKey = ref(null)
+
+const MINE = 'MINE'
+const pct = (learned, total) => (total ? Math.round((learned / total) * 100) : 0)
+
+const myBank = computed(() => {
+  const o = overview.value
+  return o ? { ...o.myBank, pct: pct(o.myBank.learned, o.myBank.total) } : null
+})
+
+const levels = computed(() => {
+  const o = overview.value
+  if (!o) return []
+  return o.levels.map((l) => ({
+    ...l,
+    name: t.library.levels[l.level],
+    current: l.level === o.currentLevel,
+    pct: pct(l.learned, l.total),
+  }))
+})
+
+async function load() {
+  loading.value = true
+  error.value = ''
+  try {
+    overview.value = await libraryApi.levels()
+  } catch (e) {
+    error.value = getErrorMessage(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+/** level: 'A1'…'C2', null = kho tự thêm. */
+async function choose(key, level) {
+  if (busyKey.value) return
+  busyKey.value = key
+  error.value = ''
+  try {
+    if ((overview.value?.currentLevel ?? null) !== level) await auth.setStudyLevel(level)
+    router.push({ name: 'practice' })
+  } catch (e) {
+    error.value = getErrorMessage(e)
+  } finally {
+    busyKey.value = null
+  }
+}
+
+onMounted(load)
+</script>
+
+<template>
+  <section class="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
+    <AlertBox
+      v-if="error"
+      class="mb-4"
+      :message="error"
+    />
+
+    <!-- Phần trên: Kho từ vựng của tôi (cùng kích thước với một thẻ cấp độ) -->
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div
+        v-if="loading"
+        class="h-28 animate-pulse rounded-2xl bg-canvas"
+        aria-busy="true"
+        :aria-label="t.common.loading"
+      />
+      <button
+        v-else-if="myBank"
+        type="button"
+        class="flex flex-col rounded-2xl border-2 border-border bg-surface p-4 text-left transition hover:border-primary-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40 disabled:cursor-wait"
+        :disabled="busyKey !== null"
+        :title="t.library.myBankDesc"
+        @click="choose(MINE, null)"
+      >
+        <AppIcon
+          name="stack"
+          class="h-8 w-8 text-primary-600"
+        />
+        <span class="mt-2 font-semibold text-ink-900">{{ t.library.myBank }}</span>
+        <span class="text-xs text-ink-500">
+          {{ busyKey === MINE ? t.common.loading : t.library.progress(myBank.learned, myBank.total) }}
+        </span>
+        <span
+          class="mt-3 block h-1.5 overflow-hidden rounded-full bg-border"
+          role="progressbar"
+          :aria-valuenow="myBank.pct"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          <span
+            class="block h-full rounded-full bg-primary-600"
+            :style="{ width: `${myBank.pct}%` }"
+          />
+        </span>
+      </button>
+    </div>
+
+    <!-- Phần dưới: các cấp độ A1–C2 -->
+    <div class="mt-6 border-t border-border pt-6">
+      <h2 class="text-lg font-semibold sm:text-xl">
+        {{ t.library.title }}
+      </h2>
+      <p class="mt-1 max-w-2xl text-sm text-ink-500">
+        {{ t.library.desc }}
+      </p>
+
+      <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <template v-if="loading">
+          <div
+            v-for="i in 6"
+            :key="i"
+            class="h-28 animate-pulse rounded-2xl bg-canvas"
+          />
+        </template>
+        <button
+          v-for="card in levels"
+          v-else
+          :key="card.level"
+          type="button"
+          class="flex flex-col rounded-2xl border-2 p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40 disabled:cursor-wait"
+          :class="card.current ? 'border-primary-600/60 bg-surface' : 'border-border bg-surface hover:border-primary-300'"
+          :disabled="busyKey !== null"
+          @click="choose(card.level, card.level)"
+        >
+          <span class="text-2xl font-bold text-primary-600">{{ card.level }}</span>
+          <span class="mt-2 font-semibold text-ink-900">{{ card.name }}</span>
+          <span class="text-xs text-ink-500">
+            {{ busyKey === card.level ? t.common.loading : (card.total ? t.library.progress(card.learned, card.total) : t.library.empty) }}
+          </span>
+          <span
+            class="mt-3 block h-1.5 overflow-hidden rounded-full bg-border"
+            role="progressbar"
+            :aria-valuenow="card.pct"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >
+            <span
+              class="block h-full rounded-full bg-primary-600"
+              :style="{ width: `${card.pct}%` }"
+            />
+          </span>
+        </button>
+      </div>
+    </div>
+  </section>
+</template>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VocabMaster – Nhớ từ vựng tiếng Anh mỗi ngày</title>
+    <meta name="description" content="Học từ vựng tiếng Anh bằng flashcard cho người Việt. Tự xây kho từ, học 20 từ mỗi ngày và ôn tập thông minh theo thuật toán SM-2." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Mono:wght@400;500&display=swap&subset=vietnamese" rel="stylesheet" />
+    <script>
+      // Áp dụng giao diện Tối trước khi vẽ trang để không bị nháy nền trắng (xem stores/theme.js)
+      try {
+        if (localStorage.getItem('vocab.theme') === 'dark') document.documentElement.classList.add('dark')
+      } catch (e) { /* bỏ qua */ }
+    </script>
+  </head>
+  <body class="bg-canvas text-ink-900 font-sans antialiased">
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens (CLAUDE.md §8.1) dạng kênh "R G B" để Tailwind ghép được độ trong suốt (bg-primary-600/10).
+ * :root là giao diện Sáng, .dark (gắn trên <html>) là giao diện Tối.
+ */
+@layer base {
+  :root {
+    --c-primary-50: 239 246 255;   /* #EFF6FF */
+    --c-primary-100: 219 234 254;  /* #DBEAFE */
+    --c-primary-200: 191 219 254;  /* #BFDBFE */
+    --c-primary-300: 147 197 253;  /* #93C5FD */
+    --c-primary-600: 37 99 235;    /* #2563EB */
+    --c-primary-700: 29 78 216;    /* #1D4ED8 */
+    --c-primary-800: 30 64 175;    /* #1E40AF */
+    --c-ink-900: 15 23 42;         /* #0F172A */
+    --c-ink-700: 51 65 85;         /* #334155 */
+    --c-ink-500: 100 116 139;      /* #64748B */
+    --c-ink-400: 148 163 184;      /* #94A3B8 */
+    --c-surface: 255 255 255;      /* #FFFFFF */
+    --c-canvas: 248 250 252;       /* #F8FAFC */
+    --c-border: 226 232 240;       /* #E2E8F0 */
+    --c-success: 16 185 129;       /* #10B981 */
+    --c-danger: 239 68 68;         /* #EF4444 */
+    --c-stat-teal: 20 184 166;     /* #14B8A6 */
+    --c-stat-violet: 139 92 246;   /* #8B5CF6 */
+    --c-stat-pink: 236 72 153;     /* #EC4899 */
+    --c-stat-blue: 37 99 235;      /* #2563EB */
+    --c-hero-start: 37 99 235;     /* #2563EB khối gradient nổi bật (card Hôm nay, mặt sau flashcard) */
+    --c-hero-end: 29 78 216;       /* #1D4ED8 */
+    color-scheme: light;
+  }
+
+  /* Giao diện Tối theo kiểu Facebook: nền gần đen, card xám đậm, chữ sáng, màu nhấn dịu lại */
+  .dark {
+    --c-primary-50: 38 57 81;      /* #263951 nền badge, icon box, mục menu đang chọn */
+    --c-primary-100: 45 68 97;     /* #2D4461 */
+    --c-primary-200: 54 82 117;    /* #365275 */
+    --c-primary-300: 74 110 156;   /* #4A6E9C viền khi hover */
+    --c-primary-600: 45 136 255;   /* #2D88FF nút chính, link */
+    --c-primary-700: 24 119 242;   /* #1877F2 hover */
+    --c-primary-800: 22 100 204;   /* #1664CC */
+    --c-ink-900: 228 230 235;      /* #E4E6EB chữ chính */
+    --c-ink-700: 208 210 214;      /* #D0D2D6 */
+    --c-ink-500: 176 179 184;      /* #B0B3B8 chữ phụ */
+    --c-ink-400: 138 141 145;      /* #8A8D91 placeholder, icon mờ */
+    --c-surface: 36 37 38;         /* #242526 card, header */
+    --c-canvas: 24 25 26;          /* #18191A nền trang */
+    --c-border: 62 64 66;          /* #3E4042 */
+    --c-success: 69 189 98;        /* #45BD62 */
+    --c-danger: 243 66 95;         /* #F3425F */
+    --c-stat-teal: 13 148 136;     /* #0D9488 */
+    --c-stat-violet: 124 58 237;   /* #7C3AED */
+    --c-stat-pink: 219 39 119;     /* #DB2777 */
+    --c-stat-blue: 24 119 242;     /* #1877F2 */
+    --c-hero-start: 38 57 81;      /* #263951 khối nổi bật tối, không chói */
+    --c-hero-end: 30 40 54;        /* #1E2836 */
+    color-scheme: dark;
+  }
+
+  /* Ring focus chung cho mọi phần tử tương tác (CLAUDE.md §8.5) */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary-600/40;
+  }
+}
+
+/* Lật thẻ 3D cho flashcard */
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+
+  /* Landing: hiện dần khi cuộn (v-reveal) và thẻ nổi trong hero */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+  /* Thanh đếm ngược 1,5 giây trước khi tự sang câu ôn tiếp theo */
+  .animate-countdown {
+    animation: countdown 1.5s linear forwards;
+  }
+  @keyframes countdown {
+    from { width: 100%; }
+    to { width: 0%; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-float { animation: none; }
+    .preserve-3d { transition: none; }
+  }
+}

@@ -1,0 +1,6 @@
+# Script chạy trên Linux phải giữ LF
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.conf text eol=lf
+*.inc text eol=lf
+docker-compose.yml text eol=lf

@@ -1,0 +1,25 @@
+# Secrets
+.env
+*.env.local
+
+# Backend
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# IDE / OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.iml
+.DS_Store
+Thumbs.db
+
+# Deploy
+deploy/backups/
+
+# Ảnh tham khảo thiết kế (9,6 MB), không dùng trong app
+godly.design_templates_agentlyy_.png
