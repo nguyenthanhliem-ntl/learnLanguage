@@ -9,6 +9,7 @@ import java.util.Random;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
+import com.vocab.library.Language;
 import com.vocab.study.dto.AnswerMode;
 import com.vocab.study.dto.PromptType;
 import com.vocab.study.dto.QuizOption;
@@ -49,6 +50,21 @@ class ReviewQuestionBuilderTest {
                     .equals(WordService.normalize(q.word().word()))).hasSize(1)
                     .first().extracting(QuizOption::id).isEqualTo(q.word().id());
         }
+    }
+
+    @Test
+    void korean_onlyChoiceQuestions_includingListen() {
+        ReviewQuestionBuilder builder = new ReviewQuestionBuilder(new Random(3));
+        List<WordResponse> words = new ArrayList<>();
+        for (int i = 0; i < 60; i++) {
+            words.add(word(3, "apple"));
+        }
+
+        List<ReviewQuestion> questions = builder.build(words, POOL, Language.KO);
+
+        assertThat(questions).extracting(ReviewQuestion::answer).containsOnly(AnswerMode.CHOICE);
+        assertThat(questions).extracting(ReviewQuestion::prompt).contains(PromptType.LISTEN);
+        assertThat(questions).allSatisfy(q -> assertThat(q.options()).hasSize(4));
     }
 
     @Test

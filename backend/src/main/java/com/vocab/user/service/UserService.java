@@ -55,13 +55,6 @@ public class UserService {
         return UserResponse.from(user);
     }
 
-    /** {@code level} has already been validated (A1–C2) or is null. */
-    @Transactional
-    public UserResponse setStudyLevel(Long userId, String level) {
-        User user = findUser(userId);
-        user.setStudyLevel(level);
-        return UserResponse.from(user);
-    }
 
     private User findUser(Long userId) {
         return userRepository.findById(userId)

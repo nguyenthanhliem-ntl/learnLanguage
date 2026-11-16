@@ -10,45 +10,71 @@ import t from '@/locales/vi'
 const auth = useAuthStore()
 const route = useRoute()
 
-// Main menu: Dashboard · Vocabulary (dropdown: Practice, Word bank, Add word) · Grammar · Irregular verbs.
+// Main menu: Dashboard (all languages) · Languages (dropdown: English, Korean, ...).
 // Shared by the header (desktop) and the bottom navigation (mobile).
+// Each language is a section (route meta "section") with its own sub-menu shown under the header.
+// Adding a language: one entry in the dropdown and one list in sectionMenus.
 const navItems = [
   { key: 'dashboard', name: 'dashboard', icon: 'home', ...t.nav.dashboard },
   {
-    key: 'vocab',
-    icon: 'book',
-    ...t.nav.vocab,
+    key: 'languages',
+    icon: 'language',
+    ...t.nav.languages,
     children: [
-      { name: 'practice', icon: 'book', ...t.nav.practice },
-      { name: 'words', icon: 'stack', ...t.nav.words },
-      { name: 'addWord', icon: 'plus', ...t.nav.addWord },
+      { name: 'englishHome', section: 'en', badge: 'EN', ...t.nav.english },
+      { name: 'koreanHome', section: 'ko', badge: 'KO', ...t.nav.korean },
     ],
   },
-  { key: 'grammar', name: 'grammar', icon: 'document', ...t.nav.grammar },
-  { key: 'irregular', name: 'irregularVerbs', icon: 'menu', ...t.nav.irregular },
 ]
 
+const sectionMenus = {
+  en: [
+    { name: 'englishHome', icon: 'squares', ...t.nav.levels },
+    { name: 'practice', icon: 'book', ...t.nav.practice },
+    { name: 'words', icon: 'stack', ...t.nav.words },
+    { name: 'addWord', icon: 'plus', ...t.nav.addWord },
+    { name: 'grammar', icon: 'document', ...t.nav.grammar },
+    { name: 'irregularVerbs', icon: 'menu', ...t.nav.irregular },
+    { name: 'commonPhrases', icon: 'sparkles', ...t.nav.phrases },
+  ],
+  ko: [
+    { name: 'koreanHome', icon: 'squares', ...t.nav.levels },
+    { name: 'koreanHangul', icon: 'language', ...t.nav.koreanHangul },
+    { name: 'koreanPractice', icon: 'book', ...t.nav.practice },
+    { name: 'koreanWords', icon: 'stack', ...t.nav.words },
+    { name: 'koreanGrammar', icon: 'document', ...t.nav.grammar },
+  ],
+}
+
 const routeNav = computed(() => route.meta.nav ?? route.name)
+const section = computed(() => route.meta.section ?? null)
+// Sub-menu of the language being viewed (none on the Dashboard / Account pages)
+const sectionMenu = computed(() => sectionMenus[section.value] ?? [])
+const currentLanguage = computed(() => navItems[1].children.find((c) => c.section === section.value) ?? null)
+
+const isChildActive = (child) => child.section === section.value
 
 function isActive(item) {
-  if (item.children) return item.children.some((c) => c.name === routeNav.value)
+  if (item.children) return item.children.some(isChildActive)
   return item.name === routeNav.value
 }
 
-// "Vocabulary" dropdown: 'desktop' | 'mobile' | null
+// Open dropdown: '<group key>:desktop' | '<group key>:mobile' | null
 const openMenu = ref(null)
-const desktopMenu = ref(null)
-const mobileMenu = ref(null)
+const desktopMenu = ref([])
+const mobileMenu = ref([])
 
-function toggle(where) {
-  openMenu.value = openMenu.value === where ? null : where
+const menuId = (item, where) => `${item.key}:${where}`
+const isOpen = (item, where) => openMenu.value === menuId(item, where)
+
+function toggle(item, where) {
+  openMenu.value = isOpen(item, where) ? null : menuId(item, where)
 }
 
 function onDocumentClick(e) {
-  // refs inside v-for are arrays
-  const refValue = openMenu.value === 'desktop' ? desktopMenu.value : mobileMenu.value
-  const root = Array.isArray(refValue) ? refValue[0] : refValue
-  if (root && !root.contains(e.target)) openMenu.value = null
+  // refs inside v-for are arrays: close when the click is outside every dropdown group
+  const roots = [...(desktopMenu.value ?? []), ...(mobileMenu.value ?? [])]
+  if (!roots.some((root) => root?.contains(e.target))) openMenu.value = null
 }
 function onKeydown(e) {
   if (e.key === 'Escape') openMenu.value = null
@@ -109,25 +135,25 @@ onMounted(() => {
                 type="button"
                 class="flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40 lg:px-4"
                 :title="item.label"
-                :class="isActive(item) || openMenu === 'desktop' ? 'bg-primary-50 text-primary-600' : 'text-ink-500 hover:bg-canvas hover:text-ink-900'"
-                :aria-expanded="openMenu === 'desktop'"
+                :class="isActive(item) || isOpen(item, 'desktop') ? 'bg-primary-50 text-primary-600' : 'text-ink-500 hover:bg-canvas hover:text-ink-900'"
+                :aria-expanded="isOpen(item, 'desktop')"
                 aria-haspopup="true"
-                @click="toggle('desktop')"
+                @click="toggle(item, 'desktop')"
               >
                 <AppIcon
                   :name="item.icon"
                   class="h-5 w-5"
                 />
-                <span class="hidden lg:inline">{{ item.label }}</span>
+                <span>{{ currentLanguage?.label ?? item.label }}</span>
                 <AppIcon
                   name="chevronDown"
                   class="h-4 w-4 transition"
-                  :class="openMenu === 'desktop' ? 'rotate-180' : ''"
+                  :class="isOpen(item, 'desktop') ? 'rotate-180' : ''"
                 />
               </button>
               <div
-                v-if="openMenu === 'desktop'"
-                class="absolute left-0 top-full z-40 mt-2 w-52 rounded-2xl border border-border bg-surface p-1.5 shadow-xl"
+                v-if="isOpen(item, 'desktop')"
+                class="absolute left-0 top-full z-40 mt-2 w-56 rounded-2xl border border-border bg-surface p-1.5 shadow-xl"
                 role="menu"
               >
                 <RouterLink
@@ -135,14 +161,11 @@ onMounted(() => {
                   :key="child.name"
                   :to="{ name: child.name }"
                   class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition"
-                  :class="routeNav === child.name ? 'bg-primary-50 text-primary-600' : 'text-ink-900 hover:bg-canvas'"
-                  :aria-current="routeNav === child.name ? 'page' : undefined"
+                  :class="isChildActive(child) ? 'bg-primary-50 text-primary-600' : 'text-ink-900 hover:bg-canvas'"
+                  :aria-current="isChildActive(child) ? 'true' : undefined"
                   role="menuitem"
                 >
-                  <AppIcon
-                    :name="child.icon"
-                    class="h-5 w-5"
-                  />
+                  <span class="flex h-7 w-9 items-center justify-center rounded-lg bg-primary-50 text-xs font-bold text-primary-600">{{ child.badge }}</span>
                   {{ child.label }}
                 </RouterLink>
               </div>
@@ -160,13 +183,41 @@ onMounted(() => {
                 :name="item.icon"
                 class="h-5 w-5"
               />
-              <span class="hidden lg:inline">{{ item.label }}</span>
+              <span>{{ item.label }}</span>
             </RouterLink>
           </template>
         </nav>
 
         <UserMenu />
       </div>
+
+      <!-- Sub-menu of the language being viewed -->
+      <nav
+        v-if="sectionMenu.length"
+        class="border-t border-border"
+        :aria-label="currentLanguage?.label"
+      >
+        <ul class="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 py-1.5">
+          <li
+            v-for="item in sectionMenu"
+            :key="item.name"
+            class="shrink-0"
+          >
+            <RouterLink
+              :to="{ name: item.name }"
+              class="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40"
+              :class="routeNav === item.name ? 'bg-primary-50 text-primary-600' : 'text-ink-500 hover:bg-canvas hover:text-ink-900'"
+              :aria-current="routeNav === item.name ? 'page' : undefined"
+            >
+              <AppIcon
+                :name="item.icon"
+                class="h-4 w-4"
+              />
+              {{ item.label }}
+            </RouterLink>
+          </li>
+        </ul>
+      </nav>
     </header>
 
     <main class="mx-auto max-w-6xl px-4 pb-28 pt-6 md:pb-12 md:pt-8">
@@ -178,20 +229,20 @@ onMounted(() => {
       class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface md:hidden"
       :aria-label="t.nav.label"
     >
-      <ul class="grid grid-cols-4">
+      <ul class="grid grid-cols-2">
         <li
           v-for="item in navItems"
           :key="item.key"
         >
-          <!-- "Vocabulary" group: tap to open the list above the menu bar -->
+          <!-- Dropdown group: tap to open the list above the menu bar -->
           <div
             v-if="item.children"
             ref="mobileMenu"
             class="relative"
           >
             <div
-              v-if="openMenu === 'mobile'"
-              class="absolute bottom-full left-1/2 z-40 mb-2 w-56 -translate-x-1/2 rounded-2xl border border-border bg-surface p-1.5 shadow-xl"
+              v-if="isOpen(item, 'mobile')"
+              class="absolute bottom-full right-2 z-40 mb-2 w-56 rounded-2xl border border-border bg-surface p-1.5 shadow-xl"
               role="menu"
             >
               <RouterLink
@@ -199,35 +250,32 @@ onMounted(() => {
                 :key="child.name"
                 :to="{ name: child.name }"
                 class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition"
-                :class="routeNav === child.name ? 'bg-primary-50 text-primary-600' : 'text-ink-900 hover:bg-canvas'"
-                :aria-current="routeNav === child.name ? 'page' : undefined"
+                :class="isChildActive(child) ? 'bg-primary-50 text-primary-600' : 'text-ink-900 hover:bg-canvas'"
+                :aria-current="isChildActive(child) ? 'true' : undefined"
                 role="menuitem"
               >
-                <AppIcon
-                  :name="child.icon"
-                  class="h-5 w-5"
-                />
+                <span class="flex h-7 w-9 items-center justify-center rounded-lg bg-primary-50 text-xs font-bold text-primary-600">{{ child.badge }}</span>
                 {{ child.label }}
               </RouterLink>
             </div>
             <button
               type="button"
               class="flex w-full flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition focus-visible:outline-none"
-              :class="isActive(item) || openMenu === 'mobile' ? 'text-primary-600' : 'text-ink-500'"
-              :aria-expanded="openMenu === 'mobile'"
+              :class="isActive(item) || isOpen(item, 'mobile') ? 'text-primary-600' : 'text-ink-500'"
+              :aria-expanded="isOpen(item, 'mobile')"
               aria-haspopup="true"
-              @click="toggle('mobile')"
+              @click="toggle(item, 'mobile')"
             >
               <span
                 class="flex h-8 w-12 items-center justify-center rounded-full transition"
-                :class="isActive(item) || openMenu === 'mobile' ? 'bg-primary-50' : ''"
+                :class="isActive(item) || isOpen(item, 'mobile') ? 'bg-primary-50' : ''"
               >
                 <AppIcon
                   :name="item.icon"
                   class="h-5 w-5"
                 />
               </span>
-              {{ item.short }}
+              {{ currentLanguage?.short ?? item.short }}
             </button>
           </div>
 

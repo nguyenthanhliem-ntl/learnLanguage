@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { wordsApi } from '@/api/words'
+import { useStudyLanguage } from '@/composables/useStudyLanguage'
 import { getErrorMessage } from '@/api/errors'
 import { useDebounceFn } from '@/composables/useDebounce'
 import { useFlash } from '@/composables/useFlash'
@@ -17,6 +18,8 @@ import WordEditModal from './WordEditModal.vue'
 import t from '@/locales/vi'
 
 const PAGE_SIZE = 20
+// The same page lists the English bank (/words) or the Korean bank (/korean/words)
+const lang = useStudyLanguage()
 
 const q = ref('')
 const page = ref(0)
@@ -41,7 +44,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const res = await wordsApi.list({ q: q.value.trim(), page: page.value, size: PAGE_SIZE })
+    const res = await wordsApi.list({ q: q.value.trim(), page: page.value, size: PAGE_SIZE, lang: lang.code })
     if (id !== requestId) return
     // Deleting every word on the last page goes back to the previous page
     if (res.items.length === 0 && page.value > 0 && res.totalPages > 0) {
@@ -100,7 +103,7 @@ onMounted(load)
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <h1 class="text-2xl font-bold sm:text-3xl">
-          {{ t.words.title }}
+          {{ lang.code === 'en' ? t.words.title : t.korean.words.title }}
         </h1>
         <p class="mt-1 text-ink-500">
           <template v-if="data">
@@ -112,7 +115,10 @@ onMounted(load)
           />
         </p>
       </div>
-      <BaseButton :to="{ name: 'addWord' }">
+      <BaseButton
+        v-if="lang.canAddWords"
+        :to="{ name: lang.routes.addWord }"
+      >
         <AppIcon
           name="plus"
           class="h-5 w-5"
@@ -184,6 +190,16 @@ onMounted(load)
       class="rounded-3xl border border-border bg-surface shadow-sm"
     >
       <EmptyState
+        v-if="!lang.canAddWords"
+        :title="t.korean.words.emptyTitle"
+        :description="t.korean.words.emptyDesc"
+      >
+        <BaseButton :to="{ name: lang.routes.home }">
+          {{ t.korean.words.chooseLevel }}
+        </BaseButton>
+      </EmptyState>
+      <EmptyState
+        v-else
         :title="t.words.emptyTitle"
         :description="t.words.emptyDesc"
       >

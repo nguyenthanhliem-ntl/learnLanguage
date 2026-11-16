@@ -2,16 +2,17 @@ import http from './http'
 
 export const studyApi = {
   // Without limit: what is left of today's goal. With limit: "Learn more".
-  getNew: (limit) =>
-    http.get('/study/new', { params: { limit: limit || undefined } }).then((res) => res.data),
+  getNew: (limit, lang = 'en') =>
+    http.get('/study/new', { params: { lang, limit: limit || undefined } }).then((res) => res.data),
 
   remember: (wordId) => http.post(`/study/new/${wordId}/remember`).then((res) => res.data),
 
   // One review round of 20–30 words. exclude: words reviewed this session; ids: review exactly these words.
   // Send lists as "1,2,3" so Spring can read them as List<Long>.
-  getReview: ({ ids = [], exclude = [] } = {}) =>
+  getReview: ({ ids = [], exclude = [], lang = 'en' } = {}) =>
     http.get('/study/review', {
       params: {
+        lang,
         ids: ids.length ? ids.join(',') : undefined,
         exclude: exclude.length ? exclude.join(',') : undefined,
       },

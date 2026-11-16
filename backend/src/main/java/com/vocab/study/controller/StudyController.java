@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vocab.config.AuthUser;
+import com.vocab.library.Language;
 import com.vocab.study.dto.AnswerRequest;
 import com.vocab.study.dto.AnswerResponse;
 import com.vocab.study.dto.NewWordsResponse;
@@ -36,8 +37,9 @@ public class StudyController {
 
     @GetMapping("/new")
     public NewWordsResponse newWords(@AuthenticationPrincipal AuthUser user,
+                                     @RequestParam(required = false) String lang,
                                      @RequestParam(required = false) Integer limit) {
-        return learnService.getNewWords(user.id(), limit);
+        return learnService.getNewWords(user.id(), Language.parse(lang), limit);
     }
 
     @PostMapping("/new/{wordId}/remember")
@@ -46,14 +48,15 @@ public class StudyController {
     }
 
     /**
-     * One review round of 20–30 words based on SM-2.
+     * One review round of 20–30 words of one language ({@code lang}, default English) based on SM-2.
      * {@code exclude}: words already reviewed in this session. {@code ids}: review exactly these words (e.g. words just answered wrong).
      */
     @GetMapping("/review")
     public ReviewRoundResponse review(@AuthenticationPrincipal AuthUser user,
+                                      @RequestParam(required = false) String lang,
                                       @RequestParam(required = false) List<Long> ids,
                                       @RequestParam(required = false) List<Long> exclude) {
-        return reviewService.getRound(user.id(), ids, exclude);
+        return reviewService.getRound(user.id(), Language.parse(lang), ids, exclude);
     }
 
     @PostMapping("/review/{wordId}/answer")

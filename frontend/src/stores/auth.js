@@ -1,7 +1,6 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { authApi } from '@/api/auth'
-import { libraryApi } from '@/api/library'
 import { usersApi } from '@/api/users'
 import { clearToken, getToken, setToken } from './tokenStorage'
 import { usePracticeStore } from './practice'
@@ -35,10 +34,6 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = await usersApi.updateSettings(settings)
   }
 
-  async function setStudyLevel(level) {
-    user.value = await libraryApi.setLevel(level)
-  }
-
   async function changePassword(payload) {
     await usersApi.changePassword(payload)
   }
@@ -50,5 +45,5 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
   }
 
-  return { token, user, isAuthenticated, login, register, fetchMe, updateSettings, setStudyLevel, changePassword, logout }
+  return { token, user, isAuthenticated, login, register, fetchMe, updateSettings, changePassword, logout }
 })

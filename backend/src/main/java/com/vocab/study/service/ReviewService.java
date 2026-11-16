@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.vocab.common.ApiException;
 import com.vocab.common.AppClock;
+import com.vocab.library.Language;
 import com.vocab.study.Sm2Calculator;
 import com.vocab.study.dto.AnswerRequest;
 import com.vocab.study.dto.AnswerResponse;
@@ -25,6 +26,7 @@ import com.vocab.study.entity.StudyLog;
 import com.vocab.study.entity.UserWordProgress;
 import com.vocab.study.repository.StudyLogRepository;
 import com.vocab.study.repository.UserWordProgressRepository;
+import com.vocab.user.repository.StudyLevelRepository;
 import com.vocab.word.dto.WordResponse;
 import com.vocab.word.dto.WordStatus;
 import com.vocab.word.entity.Word;
@@ -44,47 +46,54 @@ public class ReviewService {
     private final WordRepository wordRepository;
     private final StudyLogRepository studyLogRepository;
     private final ReviewQuestionBuilder questionBuilder;
+    private final StudyLevelRepository studyLevelRepository;
     private final Sm2Calculator sm2;
     private final AppClock clock;
 
     public ReviewService(UserWordProgressRepository progressRepository, WordRepository wordRepository,
                          StudyLogRepository studyLogRepository, ReviewQuestionBuilder questionBuilder,
+                         StudyLevelRepository studyLevelRepository,
                          Sm2Calculator sm2, AppClock clock) {
         this.progressRepository = progressRepository;
         this.wordRepository = wordRepository;
         this.studyLogRepository = studyLogRepository;
         this.questionBuilder = questionBuilder;
+        this.studyLevelRepository = studyLevelRepository;
         this.sm2 = sm2;
         this.clock = clock;
     }
 
     /**
-     * Builds one review round.
+     * Builds one review round. Only words of the level / topic being studied are reviewed
+     * (studying from the self-added bank: every learned word of the language).
      *
+     * @param language language of the round
      * @param ids     if given: review exactly these words (e.g. words just answered wrong); {@code exclude} is ignored
      * @param exclude words already reviewed in this session, not picked again
      */
     @Transactional(readOnly = true)
-    public ReviewRoundResponse getRound(Long userId, Collection<Long> ids, Collection<Long> exclude) {
+    public ReviewRoundResponse getRound(Long userId, Language language, Collection<Long> ids, Collection<Long> exclude) {
+        String lang = language.code();
+        String level = studyLevelRepository.find(userId, lang);
         List<UserWordProgress> selected = (ids != null && !ids.isEmpty())
                 ? progressRepository.findLearnedByWordIds(userId, ids).stream().limit(MAX_ROUND).toList()
-                : selectBySchedule(userId, exclude);
+                : selectBySchedule(userId, lang, level, exclude);
 
         List<WordResponse> words = toWordResponses(userId, selected);
         return new ReviewRoundResponse(
-                questionBuilder.build(words, wordRepository.findAllOptions(userId)),
-                progressRepository.countLearned(userId));
+                questionBuilder.build(words, wordRepository.findAllOptions(userId, lang), language),
+                progressRepository.countLearned(userId, lang, level));
     }
 
-    private List<UserWordProgress> selectBySchedule(Long userId, Collection<Long> exclude) {
+    private List<UserWordProgress> selectBySchedule(Long userId, String lang, String level, Collection<Long> exclude) {
         LocalDate today = clock.today();
         // "not in" with an empty list is invalid SQL: use an id that does not exist
         Collection<Long> safeExclude = (exclude == null || exclude.isEmpty()) ? List.of(-1L) : exclude;
 
         List<UserWordProgress> result = new ArrayList<>(
-                progressRepository.findDue(userId, today, safeExclude, PageRequest.of(0, MAX_ROUND)));
+                progressRepository.findDue(userId, lang, level, today, safeExclude, PageRequest.of(0, MAX_ROUND)));
         if (result.size() < MIN_ROUND) {
-            result.addAll(progressRepository.findNotDue(userId, today, safeExclude,
+            result.addAll(progressRepository.findNotDue(userId, lang, level, today, safeExclude,
                     PageRequest.of(0, MIN_ROUND - result.size())));
         }
         return result;

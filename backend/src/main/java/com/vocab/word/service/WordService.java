@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.vocab.common.ApiException;
 import com.vocab.common.AppClock;
+import com.vocab.library.Language;
 import com.vocab.common.PageResponse;
 import com.vocab.word.dto.NewWord;
 import com.vocab.word.dto.WordCheckResponse;
@@ -85,25 +86,25 @@ public class WordService {
      * if one of them is identical in all 4 columns. {@code excludeId} skips the word being edited.
      */
     @Transactional(readOnly = true)
-    public WordCheckResponse check(Long userId, String word, String partOfSpeech, String phonetic, String meaning,
+    public WordCheckResponse check(Long userId, Language language, String word, String partOfSpeech, String phonetic, String meaning,
                                    Long excludeId) {
         String normalized = normalize(word);
         if (normalized.isEmpty()) {
             return new WordCheckResponse(false, List.of());
         }
         String key = entryKey(word, partOfSpeech, phonetic, meaning);
-        List<Word> sameWord = wordRepository.findAllByNormalizedWord(userId, normalized).stream()
+        List<Word> sameWord = wordRepository.findAllByNormalizedWord(userId, language.code(), normalized).stream()
                 .filter(w -> !w.getId().equals(excludeId))
                 .toList();
         boolean exists = sameWord.stream().anyMatch(w -> entryKey(w).equals(key));
         return new WordCheckResponse(exists, sameWord.stream().map(w -> toResponse(userId, w)).toList());
     }
 
-    /** Duplicate keys of the whole bank, used by import for bulk checks. */
+    /** Duplicate keys of the whole English bank, used by Excel import for bulk checks. */
     @Transactional(readOnly = true)
     public Set<String> existingEntryKeys(Long userId) {
         Set<String> keys = new HashSet<>();
-        for (NewWord w : wordRepository.findAllEntries(userId)) {
+        for (NewWord w : wordRepository.findAllEntries(userId, Language.EN.code())) {
             keys.add(entryKey(w));
         }
         return keys;
@@ -112,18 +113,18 @@ public class WordService {
     // ---- CRUD ----
 
     @Transactional(readOnly = true)
-    public PageResponse<WordResponse> list(Long userId, String query, int page, int size) {
+    public PageResponse<WordResponse> list(Long userId, Language language, String query, int page, int size) {
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         return PageResponse.from(
-                wordRepository.search(userId, toLikePattern(query), PageRequest.of(safePage, safeSize)),
+                wordRepository.search(userId, language.code(), toLikePattern(query), PageRequest.of(safePage, safeSize)),
                 WordResponse::from);
     }
 
     @Transactional
     public WordResponse create(Long userId, WordRequest request) {
         NewWord w = cleaned(request);
-        ensureNotDuplicate(userId, w, null);
+        ensureNotDuplicate(userId, Language.EN.code(), w, null);
         Word entity = new Word(userId, w.word(), w.partOfSpeech(), w.phonetic(), w.meaning(), clock.now());
         saveAndFlush(entity);
         return WordResponse.from(entity, null);
@@ -133,7 +134,7 @@ public class WordService {
     public WordResponse update(Long userId, Long id, WordRequest request) {
         Word entity = findOwned(userId, id);
         NewWord w = cleaned(request);
-        ensureNotDuplicate(userId, w, id);
+        ensureNotDuplicate(userId, entity.getLanguageCode(), w, id);
         entity.update(w.word(), w.partOfSpeech(), w.phonetic(), w.meaning(), clock.now());
         saveAndFlush(entity);
         return toResponse(userId, entity);
@@ -169,9 +170,9 @@ public class WordService {
         return new NewWord(clean(r.word()), clean(r.partOfSpeech()), clean(r.phonetic()), clean(r.meaning()));
     }
 
-    private void ensureNotDuplicate(Long userId, NewWord w, Long excludeId) {
+    private void ensureNotDuplicate(Long userId, String lang, NewWord w, Long excludeId) {
         String key = entryKey(w);
-        boolean duplicate = wordRepository.findAllByNormalizedWord(userId, normalize(w.word())).stream()
+        boolean duplicate = wordRepository.findAllByNormalizedWord(userId, lang, normalize(w.word())).stream()
                 .anyMatch(existing -> !Objects.equals(existing.getId(), excludeId) && entryKey(existing).equals(key));
         if (duplicate) {
             throw duplicate();

@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue'
 import { wordsApi } from '@/api/words'
+import { useStudyLanguage } from './useStudyLanguage'
 import { useDebounceFn } from './useDebounce'
 
 /**
@@ -11,6 +12,7 @@ import { useDebounceFn } from './useDebounce'
  * @param excludeId  id of the word being edited (skips itself)
  */
 export function useWordDuplicateCheck(formGetter, excludeId = () => null) {
+  const lang = useStudyLanguage()
   const checking = ref(false)
   const duplicate = ref(false)
   const sameWord = ref([])
@@ -20,7 +22,7 @@ export function useWordDuplicateCheck(formGetter, excludeId = () => null) {
     const own = new AbortController()
     controller = own
     try {
-      const res = await wordsApi.check({ ...form, excludeId: excludeId() ?? undefined }, own.signal)
+      const res = await wordsApi.check({ ...form, excludeId: excludeId() ?? undefined, lang: lang.code }, own.signal)
       if (controller === own) {
         duplicate.value = res.exists
         sameWord.value = res.sameWord

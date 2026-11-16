@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { studyApi } from '@/api/study'
+import { levelLabel, useStudyLanguage } from '@/composables/useStudyLanguage'
 import { getErrorMessage } from '@/api/errors'
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 import AlertBox from '@/components/ui/AlertBox.vue'
@@ -20,6 +21,7 @@ const props = defineProps({
   bonusReason: { type: String, default: null }, // 'streak' (20 correct in a row) | 'skip' (10 skips in a row)
 })
 const emit = defineEmits(['finished'])
+const lang = useStudyLanguage()
 
 const phase = ref('loading') // loading | error | learning
 const info = ref(null)
@@ -53,7 +55,7 @@ async function load() {
   phase.value = 'loading'
   loadError.value = ''
   try {
-    const res = await studyApi.getNew(props.limit)
+    const res = await studyApi.getNew(props.limit, lang.code)
     info.value = res
     if (res.words.length) {
       words.value = res.words
@@ -147,7 +149,7 @@ onMounted(load)
           <span
             v-if="info?.studyLevel"
             class="ml-1 rounded-full bg-primary-50 px-2 py-0.5 text-xs text-primary-600"
-          >{{ info.studyLevel }}</span>
+          >{{ levelLabel(info.studyLevel) }}</span>
         </span>
         <span class="font-semibold text-primary-600">{{ learnedToday }}/{{ dailyGoal }}</span>
       </div>

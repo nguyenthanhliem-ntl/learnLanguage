@@ -24,6 +24,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.vocab.common.ApiException;
 import com.vocab.common.AppClock;
+import com.vocab.library.Language;
 import com.vocab.word.dto.WordCheckResponse;
 import com.vocab.word.dto.WordRequest;
 import com.vocab.word.dto.WordResponse;
@@ -72,10 +73,10 @@ class WordServiceTest {
 
     @Test
     void check_sameWordDifferentMeaning_isNotDuplicateButListed() {
-        when(repository.findAllByNormalizedWord(USER, "book")).thenReturn(List.of(bookNoun()));
+        when(repository.findAllByNormalizedWord(USER, "en", "book")).thenReturn(List.of(bookNoun()));
         when(repository.findProgressStatus(USER, 1L)).thenReturn(Optional.empty());
 
-        WordCheckResponse result = service.check(USER, " BOOK ", "verb", "/bʊk/", "đặt chỗ", null);
+        WordCheckResponse result = service.check(USER, Language.EN, " BOOK ", "verb", "/bʊk/", "đặt chỗ", null);
 
         assertThat(result.exists()).isFalse();
         assertThat(result.sameWord()).extracting(WordResponse::meaning).containsExactly("quyển sách");
@@ -83,17 +84,17 @@ class WordServiceTest {
 
     @Test
     void check_allFourColumnsMatch_isDuplicate() {
-        when(repository.findAllByNormalizedWord(USER, "book")).thenReturn(List.of(bookNoun()));
+        when(repository.findAllByNormalizedWord(USER, "en", "book")).thenReturn(List.of(bookNoun()));
         when(repository.findProgressStatus(USER, 1L)).thenReturn(Optional.empty());
 
-        assertThat(service.check(USER, "Book", " Noun", "/bʊk/", "Quyển sách ", null).exists()).isTrue();
+        assertThat(service.check(USER, Language.EN, "Book", " Noun", "/bʊk/", "Quyển sách ", null).exists()).isTrue();
     }
 
     @Test
     void check_excludesWordBeingEdited() {
-        when(repository.findAllByNormalizedWord(USER, "book")).thenReturn(List.of(bookNoun()));
+        when(repository.findAllByNormalizedWord(USER, "en", "book")).thenReturn(List.of(bookNoun()));
 
-        WordCheckResponse result = service.check(USER, "book", "noun", "/bʊk/", "quyển sách", 1L);
+        WordCheckResponse result = service.check(USER, Language.EN, "book", "noun", "/bʊk/", "quyển sách", 1L);
 
         assertThat(result.exists()).isFalse();
         assertThat(result.sameWord()).isEmpty();
@@ -101,13 +102,13 @@ class WordServiceTest {
 
     @Test
     void check_blankWord_returnsNothing() {
-        assertThat(service.check(USER, "   ", null, null, null, null).exists()).isFalse();
-        verify(repository, never()).findAllByNormalizedWord(anyLong(), any());
+        assertThat(service.check(USER, Language.EN, "   ", null, null, null, null).exists()).isFalse();
+        verify(repository, never()).findAllByNormalizedWord(anyLong(), any(), any());
     }
 
     @Test
     void create_exactDuplicate_isRejected() {
-        when(repository.findAllByNormalizedWord(USER, "book")).thenReturn(List.of(bookNoun()));
+        when(repository.findAllByNormalizedWord(USER, "en", "book")).thenReturn(List.of(bookNoun()));
 
         assertThatThrownBy(() -> service.create(USER, new WordRequest("BOOK", "Noun", "/bʊk/", "quyển  sách")))
                 .isInstanceOf(ApiException.class)
@@ -117,7 +118,7 @@ class WordServiceTest {
 
     @Test
     void create_sameWordOtherPartOfSpeech_isAllowed() {
-        when(repository.findAllByNormalizedWord(USER, "book")).thenReturn(List.of(bookNoun()));
+        when(repository.findAllByNormalizedWord(USER, "en", "book")).thenReturn(List.of(bookNoun()));
         when(clock.now()).thenReturn(NOW);
 
         WordResponse result = service.create(USER, new WordRequest("book", "verb", "/bʊk/", "đặt chỗ"));
@@ -128,7 +129,7 @@ class WordServiceTest {
 
     @Test
     void create_newWord_isCleanedAndSaved() {
-        when(repository.findAllByNormalizedWord(USER, "ice cream")).thenReturn(List.of());
+        when(repository.findAllByNormalizedWord(USER, "en", "ice cream")).thenReturn(List.of());
         when(clock.now()).thenReturn(NOW);
 
         WordResponse result = service.create(USER, new WordRequest("  ice   cream ", " noun ", " /aɪs kriːm/ ", "  kem "));
@@ -144,7 +145,7 @@ class WordServiceTest {
 
     @Test
     void create_raceConditionOnUniqueIndex_isReportedAsDuplicate() {
-        when(repository.findAllByNormalizedWord(USER, "apple")).thenReturn(List.of());
+        when(repository.findAllByNormalizedWord(USER, "en", "apple")).thenReturn(List.of());
         when(clock.now()).thenReturn(NOW);
         when(repository.saveAndFlush(any())).thenThrow(new DataIntegrityViolationException("UX_WORDS_USER_ENTRY"));
 
@@ -157,7 +158,7 @@ class WordServiceTest {
     void update_toCopyOfAnotherEntry_isRejected() {
         when(repository.findByIdAndUserId(2L, USER))
                 .thenReturn(Optional.of(word(2L, "book", "verb", "/bʊk/", "đặt chỗ")));
-        when(repository.findAllByNormalizedWord(USER, "book"))
+        when(repository.findAllByNormalizedWord(USER, "en", "book"))
                 .thenReturn(List.of(bookNoun(), word(2L, "book", "verb", "/bʊk/", "đặt chỗ")));
 
         assertThatThrownBy(() -> service.update(USER, 2L, new WordRequest("book", "noun", "/bʊk/", "quyển sách")))
@@ -169,7 +170,7 @@ class WordServiceTest {
     void update_itselfWithDifferentCase_isAllowed() {
         Word existing = bookNoun();
         when(repository.findByIdAndUserId(1L, USER)).thenReturn(Optional.of(existing));
-        when(repository.findAllByNormalizedWord(USER, "book")).thenReturn(List.of(existing));
+        when(repository.findAllByNormalizedWord(USER, "en", "book")).thenReturn(List.of(existing));
         when(repository.findProgressStatus(USER, 1L)).thenReturn(Optional.empty());
         when(clock.now()).thenReturn(NOW);
 

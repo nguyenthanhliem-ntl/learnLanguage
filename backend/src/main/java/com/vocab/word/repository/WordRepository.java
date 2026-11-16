@@ -22,27 +22,28 @@ public interface WordRepository extends JpaRepository<Word, Long> {
 
     List<Word> findByUserIdAndIdIn(Long userId, Collection<Long> ids);
 
-    /** Every (id, word) in the bank, used as distractors for multiple-choice questions. */
-    @Query("select new com.vocab.study.dto.QuizOption(w.id, w.word) from Word w where w.userId = :userId")
-    List<QuizOption> findAllOptions(@Param("userId") Long userId);
+    /** Every (id, word) in the bank of one language, used as distractors for multiple-choice questions. */
+    @Query("select new com.vocab.study.dto.QuizOption(w.id, w.word) from Word w where w.userId = :userId and w.languageCode = :lang")
+    List<QuizOption> findAllOptions(@Param("userId") Long userId, @Param("lang") String lang);
 
-    /** All existing meanings of the same word (compares lower(trim(word)), uses index IX_WORDS_USER_WORD). */
-    @Query("select w from Word w where w.userId = :userId and lower(trim(w.word)) = :normalized order by w.id")
-    List<Word> findAllByNormalizedWord(@Param("userId") Long userId, @Param("normalized") String normalized);
+    /** All existing meanings of the same word in one language (compares lower(trim(word)), uses index IX_WORDS_USER_WORD). */
+    @Query("select w from Word w where w.userId = :userId and w.languageCode = :lang and lower(trim(w.word)) = :normalized order by w.id")
+    List<Word> findAllByNormalizedWord(@Param("userId") Long userId, @Param("lang") String lang,
+                                       @Param("normalized") String normalized);
 
-    /** The 4 columns of the whole bank, used by import for bulk duplicate checks. */
-    @Query("select new com.vocab.word.dto.NewWord(w.word, w.partOfSpeech, w.phonetic, w.meaning) from Word w where w.userId = :userId")
-    List<NewWord> findAllEntries(@Param("userId") Long userId);
+    /** The 4 columns of the whole bank in one language, used by import for bulk duplicate checks. */
+    @Query("select new com.vocab.word.dto.NewWord(w.word, w.partOfSpeech, w.phonetic, w.meaning) from Word w where w.userId = :userId and w.languageCode = :lang")
+    List<NewWord> findAllEntries(@Param("userId") Long userId, @Param("lang") String lang);
 
     @Query("select p.status from UserWordProgress p where p.userId = :userId and p.wordId = :wordId")
     Optional<ProgressStatus> findProgressStatus(@Param("userId") Long userId, @Param("wordId") Long wordId);
 
-    /** Word list with status, searched by word or meaning. {@code pattern} is already lower-cased and escaped, null = no filter. */
+    /** Word list of one language with status, searched by word or meaning. {@code pattern} is already lower-cased and escaped, null = no filter. */
     @Query(value = """
             select new com.vocab.word.dto.WordRow(w, p.status)
             from Word w
             left join UserWordProgress p on p.wordId = w.id and p.userId = w.userId
-            where w.userId = :userId
+            where w.userId = :userId and w.languageCode = :lang
               and (:pattern is null
                    or lower(w.word) like :pattern escape '\\'
                    or lower(w.meaning) like :pattern escape '\\')
@@ -50,10 +51,11 @@ public interface WordRepository extends JpaRepository<Word, Long> {
             """,
             countQuery = """
             select count(w) from Word w
-            where w.userId = :userId
+            where w.userId = :userId and w.languageCode = :lang
               and (:pattern is null
                    or lower(w.word) like :pattern escape '\\'
                    or lower(w.meaning) like :pattern escape '\\')
             """)
-    Page<WordRow> search(@Param("userId") Long userId, @Param("pattern") String pattern, Pageable pageable);
+    Page<WordRow> search(@Param("userId") Long userId, @Param("lang") String lang, @Param("pattern") String pattern,
+                         Pageable pageable);
 }

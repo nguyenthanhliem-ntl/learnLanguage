@@ -10,7 +10,7 @@ import com.vocab.word.dto.WordResponse;
  * @param words          words to learn in this batch
  * @param dailyGoal      daily new-word goal
  * @param learnedToday   words learned today (before this batch)
- * @param studyLevel     level being studied (A1–C2), null = self-added bank
+ * @param studyLevel     level being studied (A1–C2, TOPIK1–TOPIK6...), null = self-added bank
  * @param notLearnedCount remaining unlearned words (including this batch)
  * @param totalWords     total words in the self-added bank or in the level
  */

@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.vocab.common.ApiException;
 import com.vocab.common.AppClock;
+import com.vocab.library.Language;
 import com.vocab.library.repository.LibraryRepository;
 import com.vocab.study.Sm2Calculator;
 import com.vocab.study.dto.NewWordsResponse;
@@ -20,6 +21,7 @@ import com.vocab.study.repository.NewWordQueryRepository;
 import com.vocab.study.repository.StudyLogRepository;
 import com.vocab.study.repository.UserWordProgressRepository;
 import com.vocab.user.dto.UserResponse;
+import com.vocab.user.repository.StudyLevelRepository;
 import com.vocab.user.service.UserService;
 import com.vocab.word.dto.WordResponse;
 import com.vocab.word.dto.WordStatus;
@@ -37,56 +39,61 @@ public class LearnService {
     private final UserWordProgressRepository progressRepository;
     private final StudyLogRepository studyLogRepository;
     private final LibraryRepository libraryRepository;
+    private final StudyLevelRepository studyLevelRepository;
     private final UserService userService;
     private final Sm2Calculator sm2;
     private final AppClock clock;
 
     public LearnService(NewWordQueryRepository newWordQuery, WordRepository wordRepository,
                         UserWordProgressRepository progressRepository, StudyLogRepository studyLogRepository,
-                        LibraryRepository libraryRepository, UserService userService, Sm2Calculator sm2, AppClock clock) {
+                        LibraryRepository libraryRepository, StudyLevelRepository studyLevelRepository,
+                        UserService userService, Sm2Calculator sm2, AppClock clock) {
         this.newWordQuery = newWordQuery;
         this.wordRepository = wordRepository;
         this.progressRepository = progressRepository;
         this.studyLogRepository = studyLogRepository;
         this.libraryRepository = libraryRepository;
+        this.studyLevelRepository = studyLevelRepository;
         this.userService = userService;
         this.sm2 = sm2;
         this.clock = clock;
     }
 
     /**
-     * Picks random unlearned words, from the self-added bank or from the level the user selected.
+     * Picks random unlearned words of one language, from the self-added bank or from the level the user selected.
      * Studying by level: copies more of the level's words into the user's bank when there are not enough unlearned ones.
-     * Without {@code limit}: returns what is left of today's goal (0 if already reached).
+     * Without {@code limit}: returns what is left of today's goal in this language (0 if already reached).
      * With {@code limit} ("Learn more"): returns exactly that many, ignoring the goal.
      */
     @Transactional
-    public NewWordsResponse getNewWords(Long userId, Integer limit) {
+    public NewWordsResponse getNewWords(Long userId, Language language, Integer limit) {
+        String lang = language.code();
         UserResponse user = userService.getMe(userId);
-        long learnedToday = countLearnedToday(userId);
+        long learnedToday = countLearnedToday(userId, lang);
         int size = limit != null
                 ? Math.min(Math.max(limit, 1), MAX_LIMIT)
                 : (int) Math.max(user.dailyGoal() - learnedToday, 0);
 
-        String level = user.studyLevel();
+        String level = studyLevelRepository.find(userId, lang);
         if (level == null) {
-            List<WordResponse> words = size == 0 ? List.of() : toResponses(newWordQuery.findRandomNotLearned(userId, size));
+            List<WordResponse> words = size == 0 ? List.of() : toResponses(newWordQuery.findRandomNotLearned(userId, lang, size));
             return new NewWordsResponse(words, user.dailyGoal(), learnedToday, null,
-                    newWordQuery.countNotLearned(userId), newWordQuery.countOwnBank(userId));
+                    newWordQuery.countNotLearned(userId, lang), newWordQuery.countOwnBank(userId, lang));
         }
 
         if (size > 0) {
-            long missing = size - newWordQuery.countNotLearnedInLevel(userId, level);
+            long missing = size - newWordQuery.countNotLearnedInLevel(userId, lang, level);
             if (missing > 0) {
-                libraryRepository.copyToBank(userId, level, (int) missing);
+                libraryRepository.copyToBank(userId, lang, level, (int) missing);
             }
         }
         List<WordResponse> words = size == 0
                 ? List.of()
-                : toResponses(newWordQuery.findRandomNotLearnedInLevel(userId, level, size));
-        long notLearned = newWordQuery.countNotLearnedInLevel(userId, level) + libraryRepository.countNotInBank(userId, level);
+                : toResponses(newWordQuery.findRandomNotLearnedInLevel(userId, lang, level, size));
+        long notLearned = newWordQuery.countNotLearnedInLevel(userId, lang, level)
+                + libraryRepository.countNotInBank(userId, lang, level);
         return new NewWordsResponse(words, user.dailyGoal(), learnedToday, level, notLearned,
-                libraryRepository.countByLevelCode(level));
+                libraryRepository.countByLanguageCodeAndLevelCode(lang, level));
     }
 
     private static List<WordResponse> toResponses(List<Word> words) {
@@ -96,7 +103,7 @@ public class LearnService {
     /** "Remembered": schedules the word for review (first correct SM-2 step) and logs LEARN. Pressing again does not count twice. */
     @Transactional
     public RememberResponse remember(Long userId, Long wordId) {
-        wordRepository.findByIdAndUserId(wordId, userId)
+        Word word = wordRepository.findByIdAndUserId(wordId, userId)
                 .orElseThrow(() -> ApiException.notFound("Không tìm thấy từ này trong kho"));
 
         UserWordProgress progress = progressRepository.findByUserIdAndWordId(userId, wordId)
@@ -110,12 +117,12 @@ public class LearnService {
         }
 
         return new RememberResponse(wordId, WordStatus.from(progress.getStatus()), progress.getNextReviewDate(),
-                countLearnedToday(userId));
+                countLearnedToday(userId, word.getLanguageCode()));
     }
 
-    private long countLearnedToday(Long userId) {
+    private long countLearnedToday(Long userId, String lang) {
         LocalDate today = clock.today();
-        return studyLogRepository.countByUserIdAndActivityTypeAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
-                userId, ActivityType.LEARN, today.atStartOfDay(), today.plusDays(1).atStartOfDay());
+        return studyLogRepository.countActivity(userId, lang, ActivityType.LEARN,
+                today.atStartOfDay(), today.plusDays(1).atStartOfDay());
     }
 }

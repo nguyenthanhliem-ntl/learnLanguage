@@ -1,15 +1,17 @@
 import { onBeforeUnmount, ref } from 'vue'
+import { useStudyLanguage } from './useStudyLanguage'
 
 const supported =
   typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window
 
-/** Prefer a good en-US voice (Google/Microsoft), then any English voice. */
-function pickVoice() {
+/** Prefer a good voice (Google/Microsoft) of the exact locale, then any voice of the same language. */
+function pickVoice(locale) {
   const voices = window.speechSynthesis.getVoices()
+  const language = locale.split('-')[0]
   return (
-    voices.find((v) => v.lang === 'en-US' && /Google|Microsoft|Samantha/i.test(v.name)) ||
-    voices.find((v) => v.lang === 'en-US') ||
-    voices.find((v) => v.lang?.toLowerCase().startsWith('en')) ||
+    voices.find((v) => v.lang === locale && /Google|Microsoft|Samantha/i.test(v.name)) ||
+    voices.find((v) => v.lang === locale) ||
+    voices.find((v) => v.lang?.toLowerCase().replace('_', '-').startsWith(language)) ||
     null
   )
 }
@@ -26,10 +28,11 @@ if (supported) {
 }
 
 /**
- * Pronounces English with the Web Speech API.
+ * Pronounces words with the Web Speech API, in the language of the current section (en-US, ko-KR...).
  * If the browser does not support it, {@code supported = false} and speak() does nothing.
  */
 export function useSpeech() {
+  const { speech: locale } = useStudyLanguage()
   const speaking = ref(false)
 
   function speak(text, { rate = NORMAL_RATE } = {}) {
@@ -37,9 +40,9 @@ export function useSpeech() {
     const synth = window.speechSynthesis
     synth.cancel()
     const utterance = new SpeechSynthesisUtterance(text.trim())
-    utterance.lang = 'en-US'
+    utterance.lang = locale
     utterance.rate = rate
-    const voice = pickVoice()
+    const voice = pickVoice(locale)
     if (voice) utterance.voice = voice
     utterance.onstart = () => { speaking.value = true }
     utterance.onend = () => { speaking.value = false }

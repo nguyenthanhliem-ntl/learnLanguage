@@ -14,7 +14,10 @@ public class LibraryWord {
     @Column(name = "ID")
     private Long id;
 
-    @Column(name = "LEVEL_CODE", nullable = false, length = 2)
+    @Column(name = "LANGUAGE_CODE", nullable = false, length = 5)
+    private String languageCode;
+
+    @Column(name = "LEVEL_CODE", nullable = false, length = 10)
     private String levelCode;
 
     @Column(name = "WORD", nullable = false, length = 100)
@@ -34,6 +37,10 @@ public class LibraryWord {
 
     public Long getId() {
         return id;
+    }
+
+    public String getLanguageCode() {
+        return languageCode;
     }
 
     public String getLevelCode() {

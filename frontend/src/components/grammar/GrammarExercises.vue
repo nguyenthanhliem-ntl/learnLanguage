@@ -12,9 +12,10 @@ import t from '@/locales/vi'
 // Each level has its own score and Retry button. Graded in the browser only, results are not saved.
 const props = defineProps({
   sets: { type: Object, required: true }, // { easy: [...], medium: [...], hard: [...] }
+  levels: { type: Array, default: () => LEVELS }, // [{ key, label, desc }], English tense levels by default
 })
 
-const levels = LEVELS.filter((l) => props.sets[l.key]?.length)
+const levels = props.levels.filter((l) => props.sets[l.key]?.length)
 const level = ref(levels[0]?.key ?? 'easy')
 
 // Per-question state for each level: { value, picked, result }

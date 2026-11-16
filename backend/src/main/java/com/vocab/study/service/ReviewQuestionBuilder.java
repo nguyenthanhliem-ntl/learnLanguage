@@ -9,6 +9,7 @@ import java.util.Random;
 
 import org.springframework.stereotype.Component;
 
+import com.vocab.library.Language;
 import com.vocab.study.dto.AnswerMode;
 import com.vocab.study.dto.PromptType;
 import com.vocab.study.dto.QuizOption;
@@ -24,6 +25,8 @@ import com.vocab.word.service.WordService;
  *   <li>Phonetic + part of speech → pick the word / type the word (only when the word has a phonetic)</li>
  * </ul>
  * The choice type needs at least 3 other words (different spellings) as distractors; otherwise only the typing type is used.
+ * Languages that need a special keyboard (Korean) only use choice types, including Listen → pick the word,
+ * and fall back to typing only when there are not enough distractors.
  */
 @Component
 public class ReviewQuestionBuilder {
@@ -48,6 +51,10 @@ public class ReviewQuestionBuilder {
      * @param pool  every (id, word) in the bank, used for distractors
      */
     public List<ReviewQuestion> build(List<WordResponse> words, List<QuizOption> pool) {
+        return build(words, pool, Language.EN);
+    }
+
+    public List<ReviewQuestion> build(List<WordResponse> words, List<QuizOption> pool, Language language) {
         // Group by spelling: "book (noun)" and "book (verb)" count as a single option
         Map<String, QuizOption> distinct = new LinkedHashMap<>();
         for (QuizOption o : pool) {
@@ -64,7 +71,7 @@ public class ReviewQuestionBuilder {
                 }
             });
 
-            Variant v = pickVariant(w, distractors.size() >= OPTION_COUNT - 1);
+            Variant v = pickVariant(w, distractors.size() >= OPTION_COUNT - 1, language == Language.EN);
             List<QuizOption> options = List.of();
             if (v.answer() == AnswerMode.CHOICE) {
                 Collections.shuffle(distractors, random);
@@ -79,18 +86,23 @@ public class ReviewQuestionBuilder {
         return questions;
     }
 
-    private Variant pickVariant(WordResponse w, boolean canChoose) {
+    private Variant pickVariant(WordResponse w, boolean canChoose, boolean canType) {
         boolean hasPhonetic = w.phonetic() != null && !w.phonetic().isBlank();
         List<Variant> variants = new ArrayList<>();
-        variants.add(new Variant(PromptType.LISTEN, AnswerMode.TYPE));
-        variants.add(new Variant(PromptType.MEANING, AnswerMode.TYPE));
+        if (canType || !canChoose) {
+            variants.add(new Variant(PromptType.LISTEN, AnswerMode.TYPE));
+            variants.add(new Variant(PromptType.MEANING, AnswerMode.TYPE));
+            if (hasPhonetic) {
+                variants.add(new Variant(PromptType.PHONETIC, AnswerMode.TYPE));
+            }
+        }
         if (canChoose) {
             variants.add(new Variant(PromptType.MEANING, AnswerMode.CHOICE));
-        }
-        if (hasPhonetic) {
-            variants.add(new Variant(PromptType.PHONETIC, AnswerMode.TYPE));
-            if (canChoose) {
+            if (hasPhonetic) {
                 variants.add(new Variant(PromptType.PHONETIC, AnswerMode.CHOICE));
+            }
+            if (!canType) {
+                variants.add(new Variant(PromptType.LISTEN, AnswerMode.CHOICE));
             }
         }
         return variants.get(random.nextInt(variants.size()));

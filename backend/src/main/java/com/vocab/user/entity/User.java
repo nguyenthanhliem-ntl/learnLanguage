@@ -30,10 +30,6 @@ public class User {
     @Column(name = "CREATED_AT", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    /** Level being studied (A1–C2); null = study from the self-added bank. */
-    @Column(name = "STUDY_LEVEL", length = 2)
-    private String studyLevel;
-
     protected User() {
     }
 
@@ -70,13 +66,5 @@ public class User {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
-    }
-
-    public String getStudyLevel() {
-        return studyLevel;
-    }
-
-    public void setStudyLevel(String studyLevel) {
-        this.studyLevel = studyLevel;
     }
 }

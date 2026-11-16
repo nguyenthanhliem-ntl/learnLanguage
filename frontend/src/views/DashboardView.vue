@@ -1,10 +1,11 @@
 <script setup>
 import { useAuthStore } from '@/stores/auth'
-import LevelLibrary from '@/components/library/LevelLibrary.vue'
+import LanguageCards from '@/components/library/LanguageCards.vue'
 import MonthlyHeatmap from '@/components/ui/MonthlyHeatmap.vue'
 import t from '@/locales/vi'
 
-// Dashboard: "Today" card (greeting + monthly study frequency) and the A1–C2 vocabulary bank
+// Dashboard for every language: "Today" card (greeting + monthly study frequency of all languages)
+// and one progress card per language.
 const auth = useAuthStore()
 </script>
 
@@ -32,7 +33,7 @@ const auth = useAuthStore()
       </div>
     </section>
 
-    <!-- Vocabulary bank by level -->
-    <LevelLibrary />
+    <!-- Progress of each language -->
+    <LanguageCards />
   </div>
 </template>

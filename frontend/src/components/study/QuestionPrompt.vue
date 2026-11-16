@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useSpeech } from '@/composables/useSpeech'
+import { useStudyLanguage } from '@/composables/useStudyLanguage'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import PartOfSpeech from '@/components/ui/PartOfSpeech.vue'
 import SpeakButton from '@/components/ui/SpeakButton.vue'
@@ -12,6 +13,7 @@ const props = defineProps({
 })
 
 const { supported, speaking, speak, speakTap } = useSpeech()
+const lang = useStudyLanguage()
 const LISTEN_RATE = 0.85
 const listen = () => speakTap(props.question.word.word, { rate: LISTEN_RATE }) // speaker press: every second press is slower
 
@@ -26,7 +28,7 @@ defineExpose({ listen })
 <template>
   <div class="rounded-3xl border border-border bg-surface p-6 text-center shadow-sm sm:p-8">
     <p class="text-sm text-ink-500">
-      {{ t.review.instructions[question.prompt][question.answer] }}
+      {{ t.review.instructions[lang.code][question.prompt][question.answer] }}
     </p>
 
     <!-- Listen to the pronunciation -->

@@ -4,6 +4,8 @@ import { useLoadingStore } from '@/stores/loading'
 import PublicLayout from '@/layouts/PublicLayout.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 
+const EN = { section: 'en' }
+
 const routes = [
   // Landing page for visitors; signed-in users are sent to the Dashboard by guestOnly
   {
@@ -30,17 +32,49 @@ const routes = [
     meta: { requiresAuth: true },
     children: [
       { path: 'dashboard', name: 'dashboard', component: () => import('@/views/DashboardView.vue') },
-      { path: 'practice', name: 'practice', component: () => import('@/views/study/PracticeView.vue') },
-      { path: 'words', name: 'words', component: () => import('@/views/words/WordListView.vue') },
-      { path: 'words/new', name: 'addWord', component: () => import('@/views/words/AddWordView.vue') },
       { path: 'account', name: 'account', component: () => import('@/views/AccountView.vue') },
-      { path: 'grammar', name: 'grammar', component: () => import('@/views/grammar/GrammarView.vue') },
-      { path: 'irregular-verbs', name: 'irregularVerbs', component: () => import('@/views/grammar/IrregularVerbsView.vue') },
+      // English section (meta.section selects the language sub-menu in AppLayout)
+      { path: 'english', name: 'englishHome', component: () => import('@/views/EnglishHomeView.vue'), meta: EN },
+      { path: 'practice', name: 'practice', component: () => import('@/views/study/PracticeView.vue'), meta: EN },
+      { path: 'words', name: 'words', component: () => import('@/views/words/WordListView.vue'), meta: EN },
+      { path: 'words/new', name: 'addWord', component: () => import('@/views/words/AddWordView.vue'), meta: EN },
+      { path: 'grammar', name: 'grammar', component: () => import('@/views/grammar/GrammarView.vue'), meta: EN },
+      {
+        path: 'irregular-verbs',
+        name: 'irregularVerbs',
+        component: () => import('@/views/grammar/IrregularVerbsView.vue'),
+        meta: EN,
+      },
+      {
+        path: 'phrases',
+        name: 'commonPhrases',
+        component: () => import('@/views/english/CommonPhrasesView.vue'),
+        meta: EN,
+      },
       {
         path: 'grammar/:slug',
         name: 'grammarTense',
         component: () => import('@/views/grammar/GrammarTenseView.vue'),
-        meta: { nav: 'grammar' }, // keep the "Grammar" menu highlighted while viewing a tense
+        meta: { ...EN, nav: 'grammar' }, // keep the "Grammar" item highlighted while viewing a tense
+      },
+      // Korean section: the same Practice / Word bank pages, plus Hangul and Korean grammar
+      {
+        path: 'korean',
+        component: () => import('@/views/korean/KoreanSection.vue'),
+        meta: { section: 'ko' },
+        children: [
+          { path: '', name: 'koreanHome', component: () => import('@/views/korean/KoreanHomeView.vue') },
+          { path: 'hangul', name: 'koreanHangul', component: () => import('@/views/korean/HangulView.vue') },
+          { path: 'practice', name: 'koreanPractice', component: () => import('@/views/study/PracticeView.vue') },
+          { path: 'words', name: 'koreanWords', component: () => import('@/views/words/WordListView.vue') },
+          { path: 'grammar', name: 'koreanGrammar', component: () => import('@/views/korean/KoreanGrammarView.vue') },
+          {
+            path: 'grammar/:slug',
+            name: 'koreanGrammarDetail',
+            component: () => import('@/views/korean/KoreanGrammarDetailView.vue'),
+            meta: { nav: 'koreanGrammar' },
+          },
+        ],
       },
       // Old paths from before Learn new words + Review were merged into Practice
       { path: 'learn', redirect: { name: 'practice' } },

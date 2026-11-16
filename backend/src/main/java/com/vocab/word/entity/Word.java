@@ -21,6 +21,10 @@ public class Word {
     @Column(name = "USER_ID", nullable = false, updatable = false)
     private Long userId;
 
+    /** Language of the word ('en', 'ko', ...). Words added by hand are English for now. */
+    @Column(name = "LANGUAGE_CODE", nullable = false, updatable = false, length = 5)
+    private String languageCode;
+
     @Column(name = "WORD", nullable = false, length = 100)
     private String word;
 
@@ -49,6 +53,7 @@ public class Word {
 
     public Word(Long userId, String word, String partOfSpeech, String phonetic, String meaning, LocalDateTime now) {
         this.userId = userId;
+        this.languageCode = "en";
         this.word = word;
         this.partOfSpeech = partOfSpeech;
         this.phonetic = phonetic;
@@ -71,6 +76,10 @@ public class Word {
 
     public Long getUserId() {
         return userId;
+    }
+
+    public String getLanguageCode() {
+        return languageCode;
     }
 
     public String getWord() {

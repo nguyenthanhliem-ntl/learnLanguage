@@ -1,8 +1,10 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { studyApi } from '@/api/study'
 import { getErrorMessage } from '@/api/errors'
 import { usePracticeStore } from '@/stores/practice'
+import { useStudyLanguage } from '@/composables/useStudyLanguage'
 import { NEW_WORD_WITHIN, REPEAT_GAP } from '@/utils/spacing'
 import AlertBox from '@/components/ui/AlertBox.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
@@ -16,6 +18,8 @@ import t from '@/locales/vi'
  * Practice is one continuous flow, the user does not have to choose:
  *     Review learned words  ->  (>= 70% correct) Learn new words up to today's goal  ->  Review learned words again (repeating)
  * - Every login must pass the first review round (>= 70% on first answers) before new words.
+ *   Exception: choosing a level / topic card (?start=learn) goes straight to new words of that bank.
+ * - Review only covers words of the level / topic being studied (the backend filters by the current level).
  *     Not passed: the next round uses other learned words; with fewer than 10 others, the words just answered wrong are reviewed again.
  * - New words learned today are saved in the backend after each Next, so leaving and coming back continues with the next word.
  * - No new words left today (or in the bank): go back to reviewing learned words; after a full cycle, start a new one.
@@ -26,8 +30,13 @@ const PASS_RATE = 0.7
 const MIN_NEXT_ROUND = 10
 const BONUS_STREAK = 20
 const BONUS_SKIPS = 10
+const EXTRA_WORDS = 10 // "Learn more" after today's goal is reached
 
 const practice = usePracticeStore()
+const route = useRoute()
+const router = useRouter()
+// Language of the section (English pages or the Korean menu): all API calls and links follow it
+const lang = useStudyLanguage()
 
 // loading | error | review | learn | empty
 const mode = ref('loading')
@@ -38,7 +47,7 @@ let reviewedIds = new Set() // words reviewed in the current cycle
 let retryAction = null
 
 async function fetchQuestions(params) {
-  const res = await studyApi.getReview(params)
+  const res = await studyApi.getReview({ ...params, lang: lang.code })
   return res.questions
 }
 
@@ -63,7 +72,7 @@ const roundKind = ref('review')
 function startRound(qs, priority = []) {
   questions.value = qs
   priorityIds.value = priority
-  roundKind.value = practice.reviewPassed ? 'review' : 'gate'
+  roundKind.value = practice.isPassed(lang.code) ? 'review' : 'gate'
   roundNo.value++
   mode.value = 'review'
 }
@@ -72,6 +81,8 @@ function startRound(qs, priority = []) {
 const learnLimit = ref(null)
 const learnKey = ref(0) // every visit to learning creates a new LearnSession
 const bonusReason = ref(null) // 'streak' | 'skip' while learning a bonus word
+// Why the last learning step ended: 'goalReached' | 'allLearned' | 'emptyBank' (shown in the empty state)
+const lastLearnReason = ref(null)
 function goLearn(limit = null, reason = null) {
   learnLimit.value = limit
   bonusReason.value = reason
@@ -129,14 +140,21 @@ async function nextGateRound(wrongIds) {
 }
 
 async function start() {
-  if (practice.reviewPassed) {
+  // Opened from a level / topic card: learn new words of that bank first, without the first review
+  if (route.query.start === 'learn') {
+    router.replace({ query: {} })
+    practice.setReviewPassed(true, lang.code)
+    goLearn()
+    return
+  }
+  if (practice.isPassed(lang.code)) {
     goLearn()
     return
   }
   const qs = await fetchQuestions()
   if (qs.length === 0) {
     // Nothing learned yet: nothing to review, go straight to new words
-    practice.setReviewPassed(true)
+    practice.setReviewPassed(true, lang.code)
     goLearn()
     return
   }
@@ -165,10 +183,10 @@ function onRoundFinished(results) {
     return
   }
 
-  if (!practice.reviewPassed) {
+  if (!practice.isPassed(lang.code)) {
     // Skipping everything (already known) also counts as passed
     if (answered.length === 0 || correct / answered.length >= PASS_RATE) {
-      practice.setReviewPassed(true)
+      practice.setReviewPassed(true, lang.code)
       goLearn()
     } else {
       const wrongIds = answered.filter((r) => !r.correct).map((r) => r.word.id)
@@ -179,7 +197,8 @@ function onRoundFinished(results) {
   run(continueReview)
 }
 
-function onLearnFinished({ learnedIds = [] } = {}) {
+function onLearnFinished({ learnedIds = [], reason = null } = {}) {
+  lastLearnReason.value = reason
   // Bonus word (a single word): it appears within the first 10 questions of the next review round.
   // Daily-goal new words: learn them all in one go, then continue reviewing as usual.
   const priority = bonusReason.value ? learnedIds : []
@@ -217,7 +236,7 @@ onMounted(() => run(start))
       <BaseButton
         variant="ghost"
         class="shrink-0 whitespace-nowrap"
-        :to="{ name: 'dashboard' }"
+        :to="{ name: lang.routes.home }"
       >
         {{ t.practice.stop }}
       </BaseButton>
@@ -283,22 +302,41 @@ onMounted(() => run(start))
       v-else-if="mode === 'empty'"
       class="rounded-3xl border border-border bg-surface shadow-sm"
     >
+      <!-- Today's goal already reached and nothing learned yet in this level / topic: offer extra new words -->
       <EmptyState
-        :title="t.learn.emptyBankTitle"
-        :description="t.learn.emptyBankDesc"
+        v-if="lastLearnReason === 'goalReached'"
+        :title="t.learn.goalReachedTitle"
+        :description="t.learn.goalReachedDesc"
       >
-        <BaseButton :to="{ name: 'dashboard' }">
-          {{ t.learn.chooseLevel }}
+        <BaseButton @click="goLearn(EXTRA_WORDS)">
+          {{ t.learn.learnExtra(EXTRA_WORDS) }}
         </BaseButton>
         <BaseButton
           variant="outline"
-          :to="{ name: 'addWord' }"
+          :to="{ name: lang.routes.home }"
+        >
+          {{ t.learn.chooseLevel }}
+        </BaseButton>
+      </EmptyState>
+      <EmptyState
+        v-else
+        :title="t.learn.emptyBankTitle"
+        :description="t.learn.emptyBankDesc"
+      >
+        <BaseButton :to="{ name: lang.routes.home }">
+          {{ t.learn.chooseLevel }}
+        </BaseButton>
+        <BaseButton
+          v-if="lang.canAddWords"
+          variant="outline"
+          :to="{ name: lang.routes.addWord }"
         >
           {{ t.words.emptyAdd }}
         </BaseButton>
         <BaseButton
+          v-if="lang.canAddWords"
           variant="outline"
-          :to="{ name: 'addWord', query: { tab: 'excel' } }"
+          :to="{ name: lang.routes.addWord, query: { tab: 'excel' } }"
         >
           {{ t.words.emptyImport }}
         </BaseButton>

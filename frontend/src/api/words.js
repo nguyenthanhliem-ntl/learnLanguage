@@ -1,11 +1,11 @@
 import http from './http'
 
 export const wordsApi = {
-  list: ({ q, page = 0, size = 20 } = {}) =>
-    http.get('/words', { params: { q: q || undefined, page, size } }).then((res) => res.data),
+  list: ({ q, page = 0, size = 20, lang = 'en' } = {}) =>
+    http.get('/words', { params: { lang, q: q || undefined, page, size } }).then((res) => res.data),
 
   // Called repeatedly while typing, so the loading bar is not shown.
-  // params: { word, partOfSpeech, phonetic, meaning, excludeId }
+  // params: { word, partOfSpeech, phonetic, meaning, excludeId, lang }
   check: (params, signal) =>
     http.get('/words/check', { params, silent: true, signal }).then((res) => res.data),
 

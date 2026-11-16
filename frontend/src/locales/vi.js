@@ -1,5 +1,6 @@
 // All UI text lives here so it is easy to edit (CLAUDE.md §8.5)
 import landing from './landing'
+import korean from './korean'
 
 export default {
   app: {
@@ -133,12 +134,17 @@ export default {
   nav: {
     label: 'Menu chính',
     dashboard: { label: 'Tổng quan', short: 'Tổng quan' },
-    vocab: { label: 'Từ vựng', short: 'Từ vựng' },
+    languages: { label: 'Ngôn ngữ', short: 'Ngôn ngữ' },
+    english: { label: 'Tiếng Anh', short: 'Tiếng Anh' },
+    levels: { label: 'Cấp độ', short: 'Cấp độ' },
     practice: { label: 'Luyện tập', short: 'Luyện tập' },
     words: { label: 'Kho từ', short: 'Kho từ' },
     addWord: { label: 'Thêm từ', short: 'Thêm' },
     grammar: { label: 'Ngữ pháp', short: 'Ngữ pháp' },
     irregular: { label: 'Bất quy tắc', short: 'Bất quy tắc' },
+    phrases: { label: 'Cụm từ thông dụng', short: 'Cụm từ' },
+    korean: { label: 'Tiếng Hàn', short: 'Tiếng Hàn' },
+    koreanHangul: { label: 'Bảng chữ Hangul', short: 'Hangul' },
   },
   irregular: {
     label: 'Động từ bất quy tắc',
@@ -205,7 +211,38 @@ export default {
   topbar: {
     greeting: (name) => `Xin chào, ${name}`,
   },
+  phrases: {
+    label: 'Tiếng Anh giao tiếp',
+    title: 'Cụm từ thông dụng',
+    desc: 'Thành ngữ, câu giao tiếp hằng ngày và cụm động từ hay gặp, kèm phiên âm (giọng Mỹ), nghĩa và câu ví dụ. Bấm loa để nghe.',
+    search: 'Tìm cụm từ hoặc nghĩa…',
+    filterLabel: 'Lọc theo nhóm',
+    all: 'Tất cả',
+    count: (n) => `${n} cụm từ.`,
+    phrase: 'Cụm từ',
+    ipa: 'Phiên âm',
+    meaning: 'Nghĩa & ví dụ',
+    emptyTitle: 'Không tìm thấy cụm từ nào',
+    emptyDesc: 'Thử từ khóa khác hoặc chọn nhóm "Tất cả".',
+  },
+  englishHome: {
+    title: 'Tiếng Anh',
+    desc: 'Học từ vựng theo cấp độ A1–C2 và chuyên ngành CNTT bằng flashcard và ôn tập SM-2, tự thêm từ của riêng bạn, học 12 thì, bảng động từ bất quy tắc và các cụm từ thông dụng.',
+  },
   dashboard: {
+    languagesTitle: 'Ngôn ngữ đang học',
+    languagesDesc: 'Tiến độ từ vựng của từng ngôn ngữ. Bấm vào một ngôn ngữ để chọn cấp độ, luyện tập và học ngữ pháp.',
+    languages: {
+      en: { name: 'Tiếng Anh', native: 'English', scale: 'Cấp độ A1–C2' },
+      ko: { name: 'Tiếng Hàn', native: '한국어', scale: 'TOPIK 1–6' },
+    },
+    learnedLabel: 'từ đã học / từ trong kho của bạn',
+    notStarted: 'Chưa bắt đầu',
+    currentLevel: 'Đang học',
+    ownBank: 'Kho từ tự thêm',
+    levelsDone: (done, all) => `${done}/${all} từ trong các cấp độ và chuyên ngành`,
+    continue: 'Luyện tập',
+    open: 'Mở',
     todayTitle: 'Hôm nay',
     todayDesc: (goal) => `Ôn lại từ đã học rồi học ${goal} từ mới mỗi ngày. Bắt đầu thôi!`,
     todaySummary: (learned, goal, due) => learned >= goal
@@ -274,6 +311,18 @@ export default {
     },
     progress: (learned, total) => `${learned}/${total} từ đã học`,
     empty: 'Chưa có từ',
+    // Specialized banks, keyed by the code stored in VOCAB_LIBRARY.LEVEL_CODE
+    topics: {
+      title: 'Chuyên ngành',
+      count: (n) => `${n} từ`,
+      items: {
+        IT: {
+          short: 'IT',
+          name: 'Từ vựng CNTT',
+          desc: 'Tiếng Anh chuyên ngành công nghệ thông tin: máy tính, lập trình, web & API, cơ sở dữ liệu, mạng, bảo mật, cloud & DevOps, AI & dữ liệu, kiến trúc hệ thống, mobile, quy trình làm việc và phỏng vấn. Mỗi từ có phiên âm, nghĩa và giải thích ngắn.',
+        },
+      },
+    },
   },
   account: {
     title: 'Tài khoản',
@@ -298,11 +347,18 @@ export default {
     stop: 'Kết thúc',
   },
   review: {
-    // Instructions by [hint][answer mode]
+    // Instructions by [language][hint][answer mode]
     instructions: {
-      LISTEN: { TYPE: 'Nghe và gõ lại từ tiếng Anh' },
-      MEANING: { CHOICE: 'Chọn từ tiếng Anh có nghĩa sau', TYPE: 'Gõ từ tiếng Anh có nghĩa sau' },
-      PHONETIC: { CHOICE: 'Chọn từ tiếng Anh có phiên âm sau', TYPE: 'Gõ từ tiếng Anh có phiên âm sau' },
+      en: {
+        LISTEN: { TYPE: 'Nghe và gõ lại từ tiếng Anh' },
+        MEANING: { CHOICE: 'Chọn từ tiếng Anh có nghĩa sau', TYPE: 'Gõ từ tiếng Anh có nghĩa sau' },
+        PHONETIC: { CHOICE: 'Chọn từ tiếng Anh có phiên âm sau', TYPE: 'Gõ từ tiếng Anh có phiên âm sau' },
+      },
+      ko: {
+        LISTEN: { CHOICE: 'Nghe và chọn từ tiếng Hàn đúng', TYPE: 'Nghe và gõ lại từ tiếng Hàn' },
+        MEANING: { CHOICE: 'Chọn từ tiếng Hàn có nghĩa sau', TYPE: 'Gõ từ tiếng Hàn có nghĩa sau' },
+        PHONETIC: { CHOICE: 'Chọn từ tiếng Hàn có phiên âm La-tinh sau', TYPE: 'Gõ từ tiếng Hàn có phiên âm sau' },
+      },
     },
     next: 'Tiếp tục',
     skipHint: 'Bỏ qua câu này (đã thuộc hoặc không muốn trả lời): không tính đúng sai, từ này sẽ được hỏi lại sau',
@@ -325,9 +381,13 @@ export default {
     shortcuts: 'Phím tắt: Space lật thẻ · Enter hoặc → từ tiếp theo',
     bonus: 'Bạn đã đúng 20 câu liên tiếp, học thêm 1 từ mới nhé!',
     bonusSkip: 'Bạn đã bỏ qua 10 câu liên tiếp, học thêm 1 từ mới nhé!',
-    chooseLevel: 'Chọn cấp độ A1–C2',
+    chooseLevel: 'Chọn cấp độ khác',
+    goalReachedTitle: 'Hôm nay bạn đã học đủ mục tiêu',
+    goalReachedDesc: 'Cấp độ / chủ đề đang chọn chưa có từ nào đã học để ôn. Bạn có thể học thêm vài từ mới của nó ngay bây giờ.',
+    learnExtra: (n) => `Học thêm ${n} từ mới`,
     emptyBankTitle: 'Kho từ đang trống',
-    emptyBankDesc: 'Hãy chọn một cấp độ A1–C2 ở trang Tổng quan, hoặc tự thêm từ vào kho, sau đó quay lại đây để luyện tập.',
+    emptyBankDesc: 'Hãy chọn một cấp độ ở trang Cấp độ, hoặc tự thêm từ vào kho, sau đó quay lại đây để luyện tập.',
   },
   landing,
+  korean,
 }

@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.vocab.common.PageResponse;
 import com.vocab.config.AuthUser;
+import com.vocab.library.Language;
 import com.vocab.word.dto.ImportResult;
 import com.vocab.word.dto.WordCheckResponse;
 import com.vocab.word.dto.WordRequest;
@@ -49,10 +50,11 @@ public class WordController {
 
     @GetMapping
     public PageResponse<WordResponse> list(@AuthenticationPrincipal AuthUser user,
+                                           @RequestParam(required = false) String lang,
                                            @RequestParam(required = false) String q,
                                            @RequestParam(defaultValue = "0") int page,
                                            @RequestParam(defaultValue = "20") int size) {
-        return wordService.list(user.id(), q, page, size);
+        return wordService.list(user.id(), Language.parse(lang), q, page, size);
     }
 
     @GetMapping("/check")
@@ -61,8 +63,9 @@ public class WordController {
                                    @RequestParam(required = false) String partOfSpeech,
                                    @RequestParam(required = false) String phonetic,
                                    @RequestParam(required = false) String meaning,
-                                   @RequestParam(required = false) Long excludeId) {
-        return wordService.check(user.id(), word, partOfSpeech, phonetic, meaning, excludeId);
+                                   @RequestParam(required = false) Long excludeId,
+                                   @RequestParam(required = false) String lang) {
+        return wordService.check(user.id(), Language.parse(lang), word, partOfSpeech, phonetic, meaning, excludeId);
     }
 
     @PostMapping
